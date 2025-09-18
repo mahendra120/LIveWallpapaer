@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">LIve Wallpapaer</string>
+    <string name="title_activity_login_page">LoginPage</string>
+    <string name="title_activity_sign_uppage">SignUppage</string>
+    <string name="title_activity_banner_ad">BannerAdActivity</string>
+    <string name="title_activity_showwallpaper">Showwallpaper</string>
+</resources>

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "82041881386",
+    "firebase_url": "https://live-wallpepar-3099e-default-rtdb.firebaseio.com",
+    "project_id": "live-wallpepar-3099e",
+    "storage_bucket": "live-wallpepar-3099e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:82041881386:android:67c2f56bb5f8ae32215453",
+        "android_client_info": {
+          "package_name": "com.example.livewallpapaer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "82041881386-hobmhf9unq60mjulprm4iu9t6nncn80g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.livewallpapaer",
+            "certificate_hash": "449378a8bb63838990c2f464363a1946f2459b49"
+          }
+        },
+        {
+          "client_id": "82041881386-fes1gbfdfk5n0c5dpssd8ps7377hn1rl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWRta6MD1vAxcSNRkZqz0ISGG2JmxeXIg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "82041881386-fes1gbfdfk5n0c5dpssd8ps7377hn1rl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

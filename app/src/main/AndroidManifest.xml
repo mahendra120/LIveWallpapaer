@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.SET_WALLPAPER" />
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+
+    <application
+        android:name=".MyApplication"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.LIveWallpapaer">
+        <activity
+            android:name=".viewwallpapper"
+            android:exported="false"
+            android:label="@string/title_activity_showwallpaper"
+            android:theme="@style/Theme.LIveWallpapaer" />
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713" />
+        <meta-data
+            android:name="com.google.android.gms.ads.flag.NATIVE_AD_DEBUGGER_ENABLED"
+            android:value="false" />
+        <activity
+            android:name=".RegisterPage.LoginPage"
+            android:exported="false"
+            android:label="@string/title_activity_banner_ad"
+            android:theme="@style/Theme.LIveWallpapaer" />
+        <activity
+            android:name=".BannerAdActivity"
+            android:exported="false"
+            android:label="@string/title_activity_login_page"
+            android:theme="@style/Theme.LIveWallpapaer" />
+        <activity
+            android:name=".RegisterPage.SignupPage"
+            android:exported="false"
+            android:label="@string/title_activity_login_page"
+            android:theme="@style/Theme.LIveWallpapaer" />
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.LIveWallpapaer">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

@@ -1,4 +1,4 @@
-package com.example.livewallpapaer
+package com.example.livewallpapaer.ads
 
 import android.app.Activity
 import android.content.Context

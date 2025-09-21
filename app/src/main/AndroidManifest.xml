@@ -6,8 +6,9 @@
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
 
+    <!--        android:name=".MyApplication" app open ads last this add  ok -->
+
     <application
-        android:name=".MyApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -16,6 +17,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.LIveWallpapaer">
+
+
+
         <activity
             android:name=".viewwallpapper"
             android:exported="false"
@@ -33,7 +37,7 @@
             android:label="@string/title_activity_banner_ad"
             android:theme="@style/Theme.LIveWallpapaer" />
         <activity
-            android:name=".BannerAdActivity"
+            android:name=".ads.BannerAdActivity"
             android:exported="false"
             android:label="@string/title_activity_login_page"
             android:theme="@style/Theme.LIveWallpapaer" />

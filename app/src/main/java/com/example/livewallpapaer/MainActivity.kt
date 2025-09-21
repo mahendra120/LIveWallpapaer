@@ -73,11 +73,14 @@ import com.example.livewallpapaer.wallpapercategory.animolpage
 import com.example.livewallpapaer.wallpapercategory.mountainsPage
 import com.example.livewallpapaer.wallpapercategory.seaPage
 import com.example.livewallpapaer.wallpapercategory.treepage
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.firebase.FirebaseApp
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -138,16 +141,27 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun Homepage() {
         var filterwallpaper by remember { mutableStateOf("home") }
-
-
-        var context =
-
+        var isRefreshing by remember { mutableStateOf(false) }
+        val coroutineScope = rememberCoroutineScope()
+        SwipeRefresh(
+            state = rememberSwipeRefreshState(isRefreshing),
+            onRefresh = {
+                isRefreshing = true
+                // Use coroutine scope
+                coroutineScope.launch {
+                    delay(1500)
+                    isRefreshing = false
+                }
+            }
+        )
+        {
             LaunchedEffect(Unit) {
                 Firebaserealtime.getwallpaper {
                     wallpapers = it
                     Log.d("====", "Homepage: $wallpapers")
                 }
             }
+        }
 
         val list = listOf("home", "tree", "mountains", "car", "sea", "sky", "anime", "animol")
 
@@ -192,8 +206,8 @@ class MainActivity : ComponentActivity() {
 
                 "tree" -> treepage(modifier = Modifier, this@MainActivity, wallpapers?.tree)
                 "sea" -> seaPage(modifier = Modifier, this@MainActivity, wallpapers?.sea)
-                "car" -> CardPage(modifier = Modifier, context = this@MainActivity, wallpapers?.car)
-                "mountains" -> mountainsPage(modifier = Modifier, wallpapers?.mountains)
+                "car" -> CardPage(modifier = Modifier,  this@MainActivity, wallpapers?.car)
+                "mountains" -> mountainsPage(modifier = Modifier, context = this@MainActivity, wallpapers?.mountains)
                 "sky" -> SkyPage(modifier = Modifier, this@MainActivity, wallpapers?.sky)
                 "animol" -> animolpage(modifier = Modifier, this@MainActivity, wallpapers?.animol)
                 "anime" -> animepage(modifier = Modifier, this@MainActivity, wallpapers?.anime)

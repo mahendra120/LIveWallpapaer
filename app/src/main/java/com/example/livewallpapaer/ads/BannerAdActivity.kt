@@ -1,4 +1,4 @@
-package com.example.livewallpapaer
+package com.example.livewallpapaer.ads
 
 import android.content.Context
 import android.os.Bundle
@@ -36,6 +36,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import coil.compose.AsyncImage
+import com.example.livewallpapaer.R
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdLoader
 import com.google.android.gms.ads.AdRequest
@@ -44,7 +45,6 @@ import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.OnUserEarnedRewardListener
-import com.google.android.gms.ads.admanager.AdManagerAdRequest
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.rewarded.RewardedAd
@@ -67,25 +67,25 @@ class BannerAdActivity : ComponentActivity() {
 //        loadInterstitialAd()
 
         setContent {
-            Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
+            Scaffold(modifier = Modifier.Companion.fillMaxSize(), topBar = {
                 Row(
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .fillMaxWidth()
                         .padding(top = 50.dp),
                     horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.Companion.CenterVertically
                 ) {
                     Image(
                         painterResource(R.drawable.img),
                         contentDescription = null,
-                        modifier = Modifier.size(30.dp)
+                        modifier = Modifier.Companion.size(30.dp)
                     )
                     Text("$coin")
                 }
             }) { innerPadding ->
 
                 Box(
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .fillMaxSize()
                         .padding(innerPadding)
                 ) {
@@ -158,40 +158,40 @@ class BannerAdActivity : ComponentActivity() {
     @Composable
     fun NativeAdTemplate(nativeAd: NativeAd) {
         Card(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxWidth()
                 .padding(8.dp),
             shape = MaterialTheme.shapes.medium
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.Companion.padding(16.dp)) {
                 Text(
                     text = "Ad",
                     style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier.padding(bottom = 4.dp)
+                    modifier = Modifier.Companion.padding(bottom = 4.dp)
                 )
                 nativeAd.headline?.let {
                     Text(
                         text = it,
                         style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        modifier = Modifier.Companion.padding(bottom = 8.dp)
                     )
                 }
                 nativeAd.images.firstOrNull()?.drawable?.let { drawable ->
                     AsyncImage(
                         model = drawable,
                         contentDescription = null,
-                        modifier = Modifier
+                        modifier = Modifier.Companion
                             .fillMaxWidth()
                             .height(180.dp)
                             .padding(bottom = 8.dp),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Companion.Crop
                     )
                 }
                 nativeAd.body?.let {
                     Text(
                         text = it,
                         style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        modifier = Modifier.Companion.padding(bottom = 8.dp)
                     )
                 }
                 nativeAd.callToAction?.let {
@@ -207,7 +207,7 @@ class BannerAdActivity : ComponentActivity() {
 
 
     @Composable
-    fun BannerAdView(modifier: Modifier = Modifier) {
+    fun BannerAdView(modifier: Modifier = Modifier.Companion) {
         val context = LocalContext.current
         val adView = remember {
             AdView(context).apply {

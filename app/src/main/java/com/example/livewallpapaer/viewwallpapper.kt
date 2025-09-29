@@ -1,25 +1,38 @@
 package com.example.livewallpapaer
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.WallpaperManager
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
+import android.media.MediaScannerConnection
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresPermission
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -34,12 +47,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -50,20 +64,36 @@ import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.unit.sp
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.GifDecoder
 import coil.request.ImageRequest
 import coil.request.SuccessResult
+import com.example.livewallpapaer.ads.BottomAppBarWithAd
+import com.example.livewallpapaer.util.AppPref
+import com.example.livewallpapaer.wallpapercategory.myColor
+import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.FullScreenContentCallback
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.rewarded.RewardedAd
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+import java.net.URL
 
 enum class wallpaperType {
     HOME, LOCK, BOTH
@@ -71,18 +101,22 @@ enum class wallpaperType {
 
 class viewwallpapper : ComponentActivity() {
     var url: String? = null
-    var likebutton by mutableStateOf(false)
+    var Like by mutableStateOf(false)
+
+    var TAG = "======"
+
+    private var rewardedAd: RewardedAd? = null
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        loadRewardedAd()
         url = intent.getStringExtra("url")
         setContent {
-            Scaffold(
-                modifier = Modifier.fillMaxSize(),
-                topBar = { mytopbar() },
-                bottomBar = {
-                    BottomAppBarWithAd()
-                }) { innerPadding ->
+            Scaffold(modifier = Modifier.fillMaxSize(), topBar = { mytopbar() }, bottomBar = {
+                BottomAppBarWithAd(this@viewwallpapper)
+            }) { innerPadding ->
                 Box(modifier = Modifier.padding()) {
                     wallpapershow()
                 }
@@ -97,6 +131,16 @@ class viewwallpapper : ComponentActivity() {
         var isShowBottomSheet by remember { mutableStateOf(false) }
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
+
+        val coin by AppPref.getIntLiveData(this@viewwallpapper, "coin", 10).observeAsState(10)
+        Log.d("====303", "wallpapershow: $coin")
+
+        val sharedPreferences =
+            context.getSharedPreferences("wallpaper_prefs", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putString("gif_url", url)
+        editor.apply()
+
         AsyncImage(
             model = url,
             contentDescription = null,
@@ -110,10 +154,8 @@ class viewwallpapper : ComponentActivity() {
                 ),
         )
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(url)
-                .decoderFactory(GifDecoder.Factory())
-                .build(),
+            model = ImageRequest.Builder(LocalContext.current).data(url)
+                .decoderFactory(GifDecoder.Factory()).build(),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxSize()
@@ -126,114 +168,252 @@ class viewwallpapper : ComponentActivity() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 790.dp),
+                .padding(top = 795.dp),
             horizontalArrangement = Arrangement.Center
         ) {
-            Button(
-                onClick = {
-
-                },
-                modifier = Modifier
-                    .padding(bottom = 40.dp, start = 5.dp, end = 5.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.2f))
-            )
-            {
-                Icon(
-                    Icons.Default.Download, contentDescription = null
-                )
+            if (!url!!.endsWith(".gif")) {
+                Button(
+                    onClick = {
+                        showRewardedAd()
+                    },
+                    modifier = Modifier
+                        .padding(bottom = 40.dp, start = 5.dp, end = 5.dp)
+                        .width(95.dp)
+                        .height(55.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        Color.Black
+                    ),
+                    border = BorderStroke(.4.dp, color = myColor)
+                ) {
+                    Column(
+                        modifier = Modifier,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Download,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text("Save", fontSize = 12.sp)
+                    }
+                }
             }
             Button(
                 onClick = {
                     isShowBottomSheet = true
                 },
                 modifier = Modifier
-                    .padding(bottom = 40.dp, start = 5.dp, end = 5.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.2f))
+                    .padding(bottom = 40.dp, start = 5.dp, end = 5.dp)
+                    .width(95.dp)
+                    .height(55.dp),
+                colors = ButtonDefaults.buttonColors(
+                    Color.Black
+                ),
+                border = BorderStroke(.4.dp, color = myColor)
             ) {
-                Icon(
-                    painter = painterResource(R.drawable.wallpaper),
-                    contentDescription = "wallpaper", modifier = Modifier.size(27.dp)
-                )
+                Column(
+                    modifier = Modifier,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.wallpaper),
+                        contentDescription = "wallpaper",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text("wallpaper", fontSize = 12.sp)
+                }
             }
             Button(
                 onClick = {
 
                 },
                 modifier = Modifier
-                    .padding(bottom = 40.dp, start = 4.dp, end = 4.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.2f))
+                    .padding(bottom = 40.dp, start = 5.dp, end = 5.dp)
+                    .width(95.dp)
+                    .height(55.dp),
+                colors = ButtonDefaults.buttonColors(
+                    Color.Black
+                ),
+                border = BorderStroke(.4.dp, color = myColor)
             ) {
-                Icon(
-                    Icons.Default.Share,
-                    contentDescription = "wallpaper", modifier = Modifier.size(27.dp)
-                )
+                Column(
+                    modifier = Modifier,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        Icons.Default.Share,
+                        contentDescription = "wallpaper",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text("wallpaper", fontSize = 12.sp)
+                }
             }
         }
+
         if (isShowBottomSheet) {
             ModalBottomSheet(onDismissRequest = {
                 isShowBottomSheet = false
-            }, sheetState = bottomSheetState) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                )
-                {
-                    Button(
-                        onClick = {
-                            url?.let { imageUrl ->
-                                scope.launch {
-                                    val bitmap = loadBitmapFromUrl(context, imageUrl)
-                                    if (bitmap != null) {
-                                        setMyWallpaper(bitmap, wallpaperType.HOME)
-                                    }
-                                }
-                            }
-                        },
+            }, containerColor = Color.Black.copy(.8f), sheetState = bottomSheetState) {
+                if (url!!.endsWith(".gif")) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Image(
-                            painter = painterResource(R.drawable.home),
-                            contentDescription = "Home",
-                            modifier = Modifier.size(35.dp)
-                        )
+                        Button(
+                            onClick = {
+
+
+                                if (coin >= 3) {
+                                    val user = FirebaseAuth.getInstance().currentUser
+                                    AppPref.setInt(this@viewwallpapper, "coin", coin - 3)
+                                    if (user != null) {
+                                        updateCoinInFirebase(user.uid, coin)
+                                    }
+                                } else {
+                                    Toast.makeText(this@viewwallpapper, "----", Toast.LENGTH_SHORT)
+                                        .show()
+                                }
+                            },
+
+
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(
+                                    64, 224, 208
+                                )
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(55.dp)
+                                .padding(start = 10.dp, end = 10.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(R.drawable.imageicon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(30.dp)
+                                )
+                                Text(
+                                    "3",
+                                    fontSize = 20.sp,
+                                    color = Color.White,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(top = 0.dp)
+                                )
+                                Spacer(modifier = Modifier.padding(5.dp))
+                                Text(
+                                    "Set wallpaper", fontSize = 22.sp, textAlign = TextAlign.Center
+                                )
+                            }
+                        }
                     }
-                    Spacer(modifier = Modifier.size(20.dp))
-                    Button(
-                        onClick = {
-                            url?.let { imageUrl ->
-                                scope.launch {
-                                    val bitmap = loadBitmapFromUrl(context, imageUrl)
-                                    if (bitmap != null) {
-                                        setMyWallpaper(bitmap, wallpaperType.LOCK)
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Button(
+                            onClick = {
+                                url?.let { imageUrl ->
+                                    scope.launch {
+                                        val bitmap = loadBitmapFromUrl(context, imageUrl)
+                                        if (bitmap != null) {
+                                            setMyWallpaper(bitmap, wallpaperType.HOME)
+                                        }
                                     }
                                 }
+                            },
+                            modifier = Modifier.width(110.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Black
+                            ),
+                            border = BorderStroke(.5.dp, color = Color.Yellow)
+                        ) {
+                            Column(
+                                modifier = Modifier,
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(R.drawable.home),
+                                    contentDescription = "Home",
+                                    colorFilter = ColorFilter.tint(Color.White.copy()),
+                                    modifier = Modifier.size(30.dp)
+                                )
+                                Text("Home")
                             }
-                        },
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.lock),
-                            contentDescription = "Lock",
-                            modifier = Modifier.size(35.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.size(20.dp))
-                    Button(
-                        onClick = {
-                            url?.let { imageUrl ->
-                                scope.launch {
-                                    val bitmap = loadBitmapFromUrl(context, imageUrl)
-                                    if (bitmap != null) {
-                                        setMyWallpaper(bitmap, wallpaperType.BOTH)
+                        }
+                        Spacer(modifier = Modifier.size(20.dp))
+                        Button(
+                            onClick = {
+                                url?.let { imageUrl ->
+                                    scope.launch {
+                                        val bitmap = loadBitmapFromUrl(context, imageUrl)
+                                        if (bitmap != null) {
+                                            setMyWallpaper(bitmap, wallpaperType.LOCK)
+                                        }
                                     }
                                 }
+                            },
+                            modifier = Modifier.width(110.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Black
+                            ),
+                            border = BorderStroke(.5.dp, color = Color.Yellow)
+                        ) {
+                            Column(
+                                modifier = Modifier,
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(R.drawable.lock),
+                                    contentDescription = "Lock",
+                                    colorFilter = ColorFilter.tint(Color.White),
+                                    modifier = Modifier.size(28.dp)
+                                )
+                                Text("Lock")
                             }
-                        },
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.wallpaper),
-                            contentDescription = "Wallpaper",
-                            modifier = Modifier.size(35.dp)
-                        )
+                        }
+                        Spacer(modifier = Modifier.size(20.dp))
+                        Button(
+                            onClick = {
+                                url?.let { imageUrl ->
+                                    scope.launch {
+                                        val bitmap = loadBitmapFromUrl(context, imageUrl)
+                                        if (bitmap != null) {
+                                            setMyWallpaper(bitmap, wallpaperType.BOTH)
+                                        }
+                                    }
+                                }
+                            },
+                            modifier = Modifier.width(110.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Black
+                            ),
+                            border = BorderStroke(.5.dp, color = Color.Yellow)
+                        ) {
+                            Column(
+                                modifier = Modifier,
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(R.drawable.wallpaper),
+                                    contentDescription = "Wallpaper",
+                                    colorFilter = ColorFilter.tint(Color.White),
+                                    modifier = Modifier.size(30.dp)
+                                )
+                                Text("both")
+                            }
+                        }
                     }
                 }
             }
@@ -244,20 +424,46 @@ class viewwallpapper : ComponentActivity() {
     @Composable
     fun mytopbar() {
         TopAppBar(
-            title = {}, actions = {
+            title = {
+                Box(modifier = Modifier.padding(start = 20.dp)) {
+                    if (url!!.endsWith(".gif")) {
+                        Row {
+                            Image(
+                                painter = painterResource(R.drawable.crown),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(55.dp)
+                                    .padding(end = 5.dp)
+                            )
+                            Text(
+                                "Premium",
+                                fontSize = 30.sp,
+                                textAlign = TextAlign.Center,
+                                color = Color.White,
+                                modifier = Modifier.padding(top = 15.dp)
+                            )
+                        }
+                    }
+                }
+            }, actions = {
                 Box(modifier = Modifier.padding(end = 15.dp, top = 15.dp)) {
                     Button(
                         onClick = {
-                            likebutton = !likebutton
+                            if (Like) {
+                                removeLike(url.toString())
+                            } else {
+                                addLike(url.toString())
+                            }
+                            Like = !Like
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White.copy(alpha = 0.2f)
+                            containerColor = Color.White.copy(alpha = .4f)
                         ),
                         shape = CircleShape,
                         contentPadding = PaddingValues(0.dp),
                         modifier = Modifier.size(45.dp)
                     ) {
-                        if (likebutton) {
+                        if (Like) {
                             Icon(
                                 Icons.Default.Favorite,
                                 contentDescription = null,
@@ -267,7 +473,8 @@ class viewwallpapper : ComponentActivity() {
                         } else {
                             Icon(
                                 Icons.Default.FavoriteBorder,
-                                contentDescription = null, tint = Color.Black,
+                                contentDescription = null,
+                                tint = Color.Black,
                                 modifier = Modifier.size(27.dp)
                             )
                         }
@@ -278,7 +485,7 @@ class viewwallpapper : ComponentActivity() {
                     Button(
                         onClick = { finish() },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White.copy(alpha = 0.2f)
+                            containerColor = Color.White.copy(alpha = .4f)
                         ),
                         shape = CircleShape,
                         contentPadding = PaddingValues(0.dp),
@@ -293,32 +500,6 @@ class viewwallpapper : ComponentActivity() {
                     }
                 }
             }, colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-        )
-    }
-
-    @Composable
-    fun BottomAppBarWithAd() {
-        val context = LocalContext.current
-        val adView = remember {
-            AdView(context).apply {
-                adUnitId = "ca-app-pub-3940256099942544/9214589741" // Test Banner
-                setAdSize(
-                    AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
-                        context,
-                        AdSize.FULL_WIDTH
-                    )
-                )
-            }
-        }
-
-        LaunchedEffect(Unit) {
-            val adRequest = AdRequest.Builder().build()
-            adView.loadAd(adRequest)
-        }
-
-        AndroidView(
-            modifier = Modifier.fillMaxWidth(),
-            factory = { adView }
         )
     }
 
@@ -352,19 +533,186 @@ class viewwallpapper : ComponentActivity() {
 
         // Set wallpaper
         when (type) {
-            wallpaperType.HOME -> wm.setBitmap(finalBitmap, null, true, WallpaperManager.FLAG_SYSTEM)
-            wallpaperType.LOCK -> wm.setBitmap(finalBitmap, null, true, WallpaperManager.FLAG_LOCK)
+            wallpaperType.HOME -> wm.setBitmap(
+                finalBitmap, null, true, WallpaperManager.FLAG_SYSTEM
+            )
+
+            wallpaperType.LOCK -> wm.setBitmap(
+                finalBitmap, null, true, WallpaperManager.FLAG_LOCK
+            )
+
             wallpaperType.BOTH -> wm.setBitmap(finalBitmap)
         }
     }
 
     suspend fun loadBitmapFromUrl(context: Context, url: String): Bitmap? {
         val loader = ImageLoader(context)
-        val request = ImageRequest.Builder(context)
-            .data(url)
-            .allowHardware(false) // needed to get Bitmap
-            .build()
+        val request =
+            ImageRequest.Builder(context).data(url).allowHardware(false) // needed to get Bitmap
+                .build()
         val result = (loader.execute(request) as? SuccessResult)?.drawable
         return (result as? BitmapDrawable)?.bitmap
     }
+
+    private fun loadRewardedAd() {
+        RewardedAd.load(
+            this, "ca-app-pub-3940256099942544/5224354917", // Test Rewarded ID
+            AdRequest.Builder().build(), object : RewardedAdLoadCallback() {
+                override fun onAdLoaded(ad: RewardedAd) {
+                    Log.d(TAG, "Ad was loaded ✅")
+                    rewardedAd = ad
+                }
+
+                override fun onAdFailedToLoad(adError: LoadAdError) {
+                    Log.e(TAG, "Ad failed to load ❌: ${adError.message}")
+                    rewardedAd = null
+                }
+            })
+    }
+
+    private fun showRewardedAd() {
+        if (rewardedAd == null) {
+            Toast.makeText(this, "please wait!", Toast.LENGTH_SHORT).show()
+            loadRewardedAd()
+            return
+        }
+        rewardedAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
+            override fun onAdDismissedFullScreenContent() {
+                Log.d(TAG, "Ad dismissed")
+                rewardedAd = null
+                loadRewardedAd() // preload again
+            }
+
+            override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                Log.e(TAG, "Ad failed to show ❌: ${adError.message}")
+                rewardedAd = null
+            }
+
+            override fun onAdShowedFullScreenContent() {
+                Log.d(TAG, "Ad showed fullscreen")
+            }
+        }
+        rewardedAd?.show(this) { rewardItem ->
+            downloadWallpaper(url!!)
+        }
+    }
+
+    fun downloadWallpaper(imageUrl: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // Open stream from URL
+                val url = URL(imageUrl)
+                val connection = url.openConnection()
+                connection.connect()
+                val inputStream = connection.getInputStream()
+
+                // Decode bitmap from stream
+                val bitmap = BitmapFactory.decodeStream(inputStream)
+
+                // Unique file name
+                val fileName = "wallpaper_${System.currentTimeMillis()}.jpg"
+                val file = File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                    fileName
+                )
+
+                // Save to file
+                FileOutputStream(file).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+                }
+
+                // Make visible in gallery
+                MediaScannerConnection.scanFile(
+                    this@viewwallpapper, arrayOf(file.absolutePath), arrayOf("image/jpeg"), null
+                )
+
+                // Toast on main thread
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@viewwallpapper, "Download successful: $fileName", Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@viewwallpapper, "Download failed", Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
+
+    fun updateCoinInFirebase(userId: String, newCoin: Int) {
+        val database = FirebaseDatabase.getInstance().getReference("users")
+        database.child(userId).setValue(newCoin).addOnSuccessListener {
+            setLiveWallpaper(this@viewwallpapper)
+        }.addOnFailureListener { e ->
+            Log.e("Firebase", "Failed to update coin: ${e.message}")
+        }
+    }
+
+    @SuppressLint("NewApi") // For API checks
+    fun setLiveWallpaper(context: Context) {
+        val manager = WallpaperManager.getInstance(context)
+        val service = ComponentName(context, GifWallpaperService::class.java)
+
+        val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER).apply {
+                putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT, service)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+        } else {
+            Intent(WallpaperManager.ACTION_LIVE_WALLPAPER_CHOOSER).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+        }
+
+        // Safety: Check if intent resolves
+        if (intent.resolveActivity(context.packageManager) != null) {
+            try {
+                context.startActivity(intent)
+                Toast.makeText(context, "Setting live wallpaper...", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(
+                    context,
+                    "Unable to set wallpaper: ${e.localizedMessage}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        } else {
+            Toast.makeText(
+                context,
+                "Live wallpaper not supported on this device.",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    fun addLike(url: String) {
+        val database = FirebaseDatabase.getInstance().reference
+        val auth = FirebaseAuth.getInstance()
+        val uid = auth.currentUser?.uid ?: "no-user"
+        val ref = database.child("userslIke").child(uid).child("likes")
+        ref.push().setValue(url)
+    }
+
+    fun removeLike(url: String) {
+        val database = FirebaseDatabase.getInstance().reference
+        val auth = FirebaseAuth.getInstance()
+        val uid = auth.currentUser?.uid ?: "no-user"
+
+        val wallpaperId = generateIdFromUrl(url)
+        val ref = database.child("userslike").child(uid).child("likes").child(wallpaperId)
+        Log.d("========", "removeLike: ${ref.key}")
+        ref.removeValue()
+    }
+
+
+    private fun generateIdFromUrl(url: String): String {
+        return url.hashCode().toString()  // converts URL to a safe numeric ID
+    }
+
+
 }

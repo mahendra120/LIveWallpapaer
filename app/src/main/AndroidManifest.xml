@@ -2,11 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- ✅ Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
-
-    <!--        android:name=".MyApplication" app open ads last this add  ok -->
 
     <application
         android:allowBackup="true"
@@ -18,45 +18,68 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.LIveWallpapaer">
 
+        <!-- ✅ AdMob App ID (replace before release) -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713" />
 
+        <meta-data
+            android:name="com.google.android.gms.ads.flag.NATIVE_AD_DEBUGGER_ENABLED"
+            android:value="false" />
+
+        <!-- Activities -->
+        <activity
+            android:name=".ads.AdsScreen"
+            android:exported="false"
+            android:label="@string/title_activity_ads_screen"
+            android:theme="@style/Theme.LIveWallpapaer" />
 
         <activity
             android:name=".viewwallpapper"
             android:exported="false"
             android:label="@string/title_activity_showwallpaper"
             android:theme="@style/Theme.LIveWallpapaer" />
-        <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
-        <meta-data
-            android:name="com.google.android.gms.ads.flag.NATIVE_AD_DEBUGGER_ENABLED"
-            android:value="false" />
+
         <activity
-            android:name=".RegisterPage.LoginPage"
+            android:name=".MainActivity"
             android:exported="false"
             android:label="@string/title_activity_banner_ad"
             android:theme="@style/Theme.LIveWallpapaer" />
+
         <activity
             android:name=".ads.BannerAdActivity"
             android:exported="false"
             android:label="@string/title_activity_login_page"
             android:theme="@style/Theme.LIveWallpapaer" />
+
         <activity
             android:name=".RegisterPage.SignupPage"
             android:exported="false"
             android:label="@string/title_activity_login_page"
             android:theme="@style/Theme.LIveWallpapaer" />
+
         <activity
-            android:name=".MainActivity"
+            android:name=".RegisterPage.LoginPage"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.LIveWallpapaer">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-    </application>
 
+        <!-- Wallpaper service -->
+        <service
+            android:name=".GifWallpaperService"
+            android:exported="true"
+            android:permission="android.permission.BIND_WALLPAPER">
+            <intent-filter>
+                <action android:name="android.service.wallpaper.WallpaperService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.wallpaper"
+                android:resource="@xml/my_wallpaper_info" />
+        </service>
+    </application>
 </manifest>

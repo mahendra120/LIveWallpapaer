@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.process)
+    implementation(libs.androidx.runtime.livedata)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -87,5 +88,12 @@ dependencies {
     implementation("com.google.accompanist:accompanist-swiperefresh:0.34.0")
 
     implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.27")
+
+      // live wallpaper
+    implementation ("androidx.compose.ui:ui-android")
+    implementation ("androidx.compose.runtime:runtime")
+    implementation ("io.coil-kt:coil-compose:2.7.0")
+
+    implementation("com.google.android.gms:play-services-ads:23.1.0")
 
 }

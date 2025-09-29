@@ -13,7 +13,9 @@ import com.example.livewallpapaer.R
 val quicksand = FontFamily(
     Font(R.font.tooto, FontWeight.Normal),
 )
-
+val toot = FontFamily(
+    Font(R.font.play, FontWeight.Normal),
+)
 val Typography = Typography(
     bodyLarge = TextStyle(
         fontFamily = FontFamily.Default,

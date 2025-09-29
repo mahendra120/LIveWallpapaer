@@ -3,6 +3,7 @@ package com.example.livewallpapaer.wallpapercategory
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,29 +15,35 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import coil.decode.GifDecoder
 import coil.request.ImageRequest
+import com.example.livewallpapaer.R
 import com.example.livewallpapaer.viewwallpapper
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.text.endsWith
 
 @Composable
 fun SkyPage(modifier: Modifier = Modifier,context : Context, sky: List<String>?) {
@@ -57,45 +64,119 @@ fun SkyPage(modifier: Modifier = Modifier,context : Context, sky: List<String>?)
         LazyVerticalStaggeredGrid(columns = StaggeredGridCells.Fixed(2)) {
             sky?.let { list ->
                 items(list) { url ->
-                    Card(
-                        onClick = {
-                            val intent = Intent(context, viewwallpapper::class.java)
-                            intent.putExtra("url", url)
-                            context.startActivity(intent)
-                        },
-                        modifier = modifier
-                            .fillMaxWidth()
-                            .padding(4.dp)
-                            .size(height = 335.dp, width = Dp.Unspecified)
-                            .border(
-                                1.dp,
-                                color = Color.Yellow.copy(alpha = 0.3f),
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                            .clip(RoundedCornerShape(12.dp)),
-                        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
-                    ) {
-                        SubcomposeAsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(url)
-                                .decoderFactory(GifDecoder.Factory()) // For GIF support
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        ) {
-                            when (painter.state) {
-                                is coil.compose.AsyncImagePainter.State.Loading -> {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier
-                                            .padding(0.dp)
-                                            .size(20.dp),
-                                        strokeWidth = 3.dp,
-                                        color = Color.Yellow
-                                    )
+                    if (url.endsWith(".gif")) {
+                        Card(
+                            onClick = {
+                                val intent = Intent(context, viewwallpapper::class.java)
+                                intent.putExtra("url", url)
+                                context.startActivity(intent)
+                            },
+                            modifier = modifier
+                                .fillMaxWidth()
+                                .padding(4.dp)
+                                .size(height = 335.dp, width = Dp.Unspecified)
+                                .border(
+                                    1.dp,
+                                    color = Color.Yellow.copy(alpha = 0.3f),
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                .clip(RoundedCornerShape(12.dp)),
+                            colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+                        )
+                        {
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                SubcomposeAsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(url)
+                                        .decoderFactory(GifDecoder.Factory())
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                ) {
+                                    when (painter.state) {
+                                        is AsyncImagePainter.State.Loading -> {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .size(50.dp),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier
+                                                        .size(20.dp)
+                                                        .align(Alignment.Center),
+                                                    strokeWidth = 4.dp,
+                                                    color = myColor
+                                                )
+                                            }
+                                        }
+
+                                        else -> SubcomposeAsyncImageContent(alignment = Alignment.Center)
+                                    }
                                 }
-                                else -> SubcomposeAsyncImageContent()
+
+                                Icon(
+                                    painter = painterResource(R.drawable.crown),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(45.dp)
+                                        .align(Alignment.TopEnd)
+                                        .padding(end = 5.dp),
+                                    tint = Color.Yellow
+                                )
+                            }
+                        }
+                    } else {
+                        Card(
+                            onClick = {
+                                val intent = Intent(context, viewwallpapper::class.java)
+                                intent.putExtra("url", url)
+                                context.startActivity(intent)
+                            },
+                            modifier = modifier
+                                .fillMaxWidth()
+                                .padding(4.dp)
+                                .size(height = 335.dp, width = Dp.Unspecified)
+                                .border(
+                                    1.dp,
+                                    color = Color.Yellow.copy(alpha = 0.3f),
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                .clip(RoundedCornerShape(12.dp)),
+                            colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+                        )
+                        {
+                            SubcomposeAsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(url)
+                                    .decoderFactory(GifDecoder.Factory()) // For GIF support
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            ) {
+                                when (painter.state) {
+                                    is AsyncImagePainter.State.Loading -> {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .size(50.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            CircularProgressIndicator(
+                                                modifier = Modifier
+                                                    .size(20.dp)
+                                                    .align(Alignment.Center),
+                                                strokeWidth = 4.dp,
+                                                color =myColor
+                                            )
+                                        }
+                                    }
+                                    else -> SubcomposeAsyncImageContent()
+                                }
                             }
                         }
                     }

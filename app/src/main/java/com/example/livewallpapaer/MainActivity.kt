@@ -1,26 +1,38 @@
 package com.example.livewallpapaer
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Search
@@ -46,26 +58,35 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
-import com.example.livewallpapaer.category.ProfilePage
+import androidx.lifecycle.LiveData
+import com.example.livewallpapaer.ads.BottomAppBarWithAd
+import com.example.livewallpapaer.ads.AdsScreen
+import com.example.livewallpapaer.ads.checkhome
 import com.example.livewallpapaer.category.settingpage
 import com.example.livewallpapaer.ui.theme.quicksand
+import com.example.livewallpapaer.util.AppPref
+import com.example.livewallpapaer.util.SharedPrefLiveData
 import com.example.livewallpapaer.wallpapercategory.CardPage
 import com.example.livewallpapaer.wallpapercategory.HomePage
+import com.example.livewallpapaer.wallpapercategory.Like
 import com.example.livewallpapaer.wallpapercategory.SkyPage
 import com.example.livewallpapaer.wallpapercategory.WallpaperResponse
 import com.example.livewallpapaer.wallpapercategory.animepage
@@ -75,19 +96,21 @@ import com.example.livewallpapaer.wallpapercategory.seaPage
 import com.example.livewallpapaer.wallpapercategory.treepage
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
+import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.auth
+import com.google.firebase.database.database
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class MainActivity : ComponentActivity() {
-    var showsearchbox by mutableStateOf(false)
-    var nevigetionlist by mutableStateOf("Home")
-    var search by mutableStateOf(false)
+var ads_off_on by mutableStateOf(false)
 
+class MainActivity : ComponentActivity() {
+
+    var showsearchbox by mutableStateOf(false)
+    var nevigetionlist: String? by mutableStateOf("Home")
+    var search by mutableStateOf(false)
     var wallpapers by mutableStateOf<WallpaperResponse?>(null)
 
     @SuppressLint("CoroutineCreationDuringComposition")
@@ -95,6 +118,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         FirebaseApp.initializeApp(this)
+        if (checkhome) {
+            nevigetionlist = intent.getStringExtra("name")
+        }
+        loadCoin()
         setContent {
             val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
             val scope = rememberCoroutineScope()
@@ -105,7 +132,7 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
                     Topbar(drawerState, scope)
                 }, bottomBar = {
-                    BottomAppBarWithAd()
+                    BottomAppBarWithAd(this@MainActivity)
                 }, containerColor = Color.Black) { innerPadding ->
                     Box(
                         modifier = Modifier
@@ -126,9 +153,15 @@ class MainActivity : ComponentActivity() {
                                 scope.launch { drawerState.close() }
                             }
 
-                            "Person" -> {
-                                ProfilePage()
+                            "Ads" -> {
+                                val intent = Intent(this@MainActivity, AdsScreen::class.java)
+                                startActivity(intent)
                                 search = false
+                                scope.launch { drawerState.close() }
+                            }
+
+                            "Like" -> {
+                                Like()
                                 scope.launch { drawerState.close() }
                             }
                         }
@@ -142,12 +175,12 @@ class MainActivity : ComponentActivity() {
     fun Homepage() {
         var filterwallpaper by remember { mutableStateOf("home") }
         var isRefreshing by remember { mutableStateOf(false) }
+        val hasInternet = remember { mutableStateOf(isInternetAvailable(this)) }
         val coroutineScope = rememberCoroutineScope()
         SwipeRefresh(
             state = rememberSwipeRefreshState(isRefreshing),
             onRefresh = {
                 isRefreshing = true
-                // Use coroutine scope
                 coroutineScope.launch {
                     delay(1500)
                     isRefreshing = false
@@ -163,8 +196,13 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        val list = listOf("home", "tree", "mountains", "car", "sea", "sky", "anime", "animol")
-
+        LaunchedEffect(Unit) {
+            while (true) {
+                hasInternet.value = isInternetAvailable(this@MainActivity)
+                delay(3000) // 3 sec ma ek var check
+            }
+        }
+        val list = listOf("home", "tree", "mountains", "car", "sea", "sky", "anime", "animal")
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -173,7 +211,7 @@ class MainActivity : ComponentActivity() {
                     val name = list[index]
                     Button(
                         onClick = { filterwallpaper = name },
-                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
+                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 8.dp),
                         colors = ButtonDefaults.buttonColors(
                             contentColor = Color(239, 226, 35, 255),
                             containerColor = Color.Transparent
@@ -187,7 +225,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         Text(
                             name,
-                            fontSize = 18.sp,
+                            fontSize = 17.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = quicksand
                         )
@@ -197,22 +235,67 @@ class MainActivity : ComponentActivity() {
             if (showsearchbox) {
                 mySearchBar()
             }
-            when (filterwallpaper) {
-                "home" -> HomePage(
-                    modifier = Modifier,
-                    context = this@MainActivity,
-                    wallpapers?.home
-                )
+            if (hasInternet.value) {
+                when (filterwallpaper) {
+                    "home" -> HomePage(
+                        modifier = Modifier,
+                        context = this@MainActivity,
+                        wallpapers?.home
+                    )
+                    "tree" -> treepage(modifier = Modifier, this@MainActivity, wallpapers?.tree)
+                    "sea" -> seaPage(modifier = Modifier, this@MainActivity, wallpapers?.sea)
+                    "car" -> CardPage(modifier = Modifier, this@MainActivity, wallpapers?.car)
+                    "mountains" -> mountainsPage(
+                        modifier = Modifier,
+                        context = this@MainActivity,
+                        wallpapers?.mountains
+                    )
 
-                "tree" -> treepage(modifier = Modifier, this@MainActivity, wallpapers?.tree)
-                "sea" -> seaPage(modifier = Modifier, this@MainActivity, wallpapers?.sea)
-                "car" -> CardPage(modifier = Modifier,  this@MainActivity, wallpapers?.car)
-                "mountains" -> mountainsPage(modifier = Modifier, context = this@MainActivity, wallpapers?.mountains)
-                "sky" -> SkyPage(modifier = Modifier, this@MainActivity, wallpapers?.sky)
-                "animol" -> animolpage(modifier = Modifier, this@MainActivity, wallpapers?.animol)
-                "anime" -> animepage(modifier = Modifier, this@MainActivity, wallpapers?.anime)
+                    "sky" -> SkyPage(modifier = Modifier, this@MainActivity, wallpapers?.sky)
+                    "animal" -> animolpage(
+                        modifier = Modifier,
+                        this@MainActivity,
+                        wallpapers?.animol
+                    )
+
+                    "anime" -> animepage(modifier = Modifier, this@MainActivity, wallpapers?.anime)
+                }
+            } else {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(
+                        modifier = Modifier,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.nonet),
+                            contentDescription = null,
+                            colorFilter = ColorFilter.tint(Color.White),
+                            modifier = Modifier
+                                .size(200.dp)
+                                .align(Alignment.CenterHorizontally)
+                        )
+                        Text(
+                            "No Internet Connection",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = quicksand,
+                            color = Color.White
+                        )
+                    }
+                }
             }
         }
+    }
+
+    fun loadCoin() {
+        val currentUser = Firebase.auth.currentUser!!
+        val database = Firebase.database.getReference("users").child(currentUser.uid)
+        database.get()
+            .addOnSuccessListener {
+                val coin = (it.value as? Long)?.toInt() ?: 0
+                AppPref.setInt(this@MainActivity, "coin", coin)
+            }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -318,6 +401,8 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun Topbar(drawerState: DrawerState, scope: CoroutineScope) {
+        val coin by AppPref.getIntLiveData(this@MainActivity, "coin", 10).observeAsState(10)
+        Log.d("======", "Topbar: $coin")
         TopAppBar(
             title = {
                 Text(
@@ -338,31 +423,50 @@ class MainActivity : ComponentActivity() {
                 )
             },
             actions = {
-                IconButton(onClick = {
-                    showsearchbox = !showsearchbox
-                    Log.d("======", "Topbar: $showsearchbox")
-                }) {
-//                    if (search) {
-//                        if (!showsearchbox) {
-//                            Icon(
-//                                Icons.Default.Search,
-//                                contentDescription = null,
-//                                tint = Color.Yellow,
-//                                modifier = Modifier
-//                                    .size(40.dp)
-//                                    .padding(end = 15.dp)
-//                            )
-//                        } else {
-//                            Icon(
-//                                Icons.Default.Close,
-//                                contentDescription = null,
-//                                tint = Color.Yellow,
-//                                modifier = Modifier
-//                                    .size(40.dp)
-//                                    .padding(end = 15.dp)
-//                            )
-//                        }
-//                    }
+                Button(
+                    onClick = {
+                        nevigetionlist = "Ads"
+                    },
+                    modifier = Modifier.padding(bottom = 0.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+                )
+                {
+                    Row(modifier = Modifier.padding(end = 0.dp)) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = null,
+                            tint = Color.Yellow,
+                            modifier = Modifier
+                                .size(27.dp)
+                                .padding(top = 7.dp)
+                        )
+                        Image(
+                            painter = painterResource(R.drawable.imageicon),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(33.dp)
+                        )
+                        if (coin >= 100){
+                            Text(
+                                text = "${coin}",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = quicksand,
+                                color = Color.White,
+                                modifier = Modifier.padding(start = 3.dp, top = 5.dp)
+                            )
+                        }
+                        else{
+                            Text(
+                                text = "${coin}",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = quicksand,
+                                color = Color.White,
+                                modifier = Modifier.padding(start = 3.dp, top = 5.dp)
+                            )
+                        }
+                    }
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black),
@@ -389,9 +493,9 @@ class MainActivity : ComponentActivity() {
     val navItemList = listOf(
         NavItem("Home", Icons.Default.Home),
         NavItem("Setting", Icons.Default.Settings),
-        NavItem("Person", Icons.Default.Person)
+        NavItem("Like", Icons.Default.FavoriteBorder),
+        NavItem("Ads", Icons.Default.LiveTv)
     )
-
 
     @Composable
     fun MyDrawer() {
@@ -435,47 +539,24 @@ class MainActivity : ComponentActivity() {
                     nevigetionlist = item.label
                 }, modifier = Modifier.padding(5.dp))
             }
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 15.dp, vertical = 5.dp))
-            Text(
-                "category",
-                fontSize = 25.sp,
-                modifier = Modifier.padding(start = 20.dp, top = 15.dp),
-                style = TextStyle(
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(
-                            Color(0xFFFFD700), // Yellow
-                            Color(0xFFFF8C00), // Orange
-                            Color(0xFFFF4500)  // Reddish Orange
-                        )
-                    ), textAlign = TextAlign.Center
-                )
-            )
         }
     }
 
-    @Composable
-    fun BottomAppBarWithAd() {
-        val context = LocalContext.current
-        val adView = remember {
-            AdView(context).apply {
-                adUnitId = "ca-app-pub-3940256099942544/9214589741" // Test Banner
-                setAdSize(
-                    AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
-                        context,
-                        AdSize.FULL_WIDTH
-                    )
-                )
-            }
+    @Suppress("DEPRECATION")
+    fun isInternetAvailable(context: Context): Boolean {
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val network = cm.activeNetwork ?: return false
+            val capabilities = cm.getNetworkCapabilities(network) ?: return false
+            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        } else {
+            val networkInfo = cm.activeNetworkInfo
+            networkInfo != null && networkInfo.isConnected
         }
-
-        LaunchedEffect(Unit) {
-            val adRequest = AdRequest.Builder().build()
-            adView.loadAd(adRequest)
-        }
-
-        AndroidView(
-            modifier = Modifier.fillMaxWidth(),
-            factory = { adView }
-        )
     }
+
+    fun SharedPreferences.intLiveData(key: String, defValue: Int = 0): LiveData<Int> {
+        return SharedPrefLiveData(this, key, defValue)
+    }
+
 }

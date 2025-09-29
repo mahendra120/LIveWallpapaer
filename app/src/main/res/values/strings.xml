@@ -4,4 +4,6 @@
     <string name="title_activity_sign_uppage">SignUppage</string>
     <string name="title_activity_banner_ad">BannerAdActivity</string>
     <string name="title_activity_showwallpaper">Showwallpaper</string>
+    <string name="wallpaper_description">null\n</string>
+    <string name="title_activity_ads_screen">AdsScreen</string>
 </resources>

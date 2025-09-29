@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -46,6 +47,7 @@ import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.OnUserEarnedRewardListener
 import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
@@ -63,7 +65,7 @@ class BannerAdActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-//        LoadinterstitialAd()
+        LoadinterstitialAd()
 //        loadInterstitialAd()
 
         setContent {
@@ -92,37 +94,35 @@ class BannerAdActivity : ComponentActivity() {
                     val context = LocalContext.current
                     MyScreenWithNativeAd(context = context)
                 }
-//                Box(
-//                    modifier = Modifier
-//                        .fillMaxSize()
-//                        .padding(innerPadding),
-//                    contentAlignment = Alignment.Center
-//                )
-//                {
-//
-//
-//                    Column {
-//                        BannerAdView(modifier = Modifier.padding(innerPadding))
-//                        Button(
-//                            onClick = { showInterstitialAd() }, modifier = Modifier.align(
-//                                Alignment.CenterHorizontally
-//                            )
-//                        ) {
-//                            Text("Show Interstitial Ad")
-//                        }
-//                    }
-//                    Column {
-//                        BannerAdView(modifier = Modifier.padding(innerPadding))
-//                        Spacer(modifier = Modifier.weight(1f))
-//                        Button(
-//                            onClick = { showinterstitialAd() }, modifier = Modifier.align(
-//                                Alignment.CenterHorizontally
-//                            )
-//                        ) {
-//                            Text("Show Rewarded Ad")
-//                        }
-//                    }
-//                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = Alignment.Center
+                )
+                {
+                    Column {
+                        BannerAdView(modifier = Modifier.padding(innerPadding))
+                        Button(
+                            onClick = { showInterstitialAd() }, modifier = Modifier.align(
+                                Alignment.CenterHorizontally
+                            )
+                        ) {
+                            Text("Show Interstitial Ad")
+                        }
+                    }
+                    Column {
+                        BannerAdView(modifier = Modifier.padding(innerPadding))
+                        Spacer(modifier = Modifier.weight(1f))
+                        Button(
+                            onClick = { showinterstitialAd() }, modifier = Modifier.align(
+                                Alignment.CenterHorizontally
+                            )
+                        ) {
+                            Text("Show Rewarded Ad")
+                        }
+                    }
+                }
             }
         }
     }
@@ -288,52 +288,52 @@ class BannerAdActivity : ComponentActivity() {
     }
 
 
-//    fun loadInterstitialAd() {
-//        InterstitialAd.load(
-//            this,
-//            "ca-app-pub-3940256099942544/1033173712",
-//            AdRequest.Builder().build(),
-//            object : InterstitialAdLoadCallback() {
-//                override fun onAdLoaded(ad: InterstitialAd) {
-//                    Log.d(TAG, "Ad was loaded.")
-//                    interstitialAd = ad
-//                }
-//
-//                override fun onAdFailedToLoad(adError: LoadAdError) {
-//                    Log.d(TAG, adError.message)
-//                    interstitialAd = null
-//                }
-//            },
-//        )
-//    }
-//
-//    fun showInterstitialAd() {
-//        interstitialAd?.fullScreenContentCallback =
-//            object : FullScreenContentCallback() {
-//                override fun onAdDismissedFullScreenContent() {
-//                    Log.d(TAG, "Ad was dismissed.")
-//                    interstitialAd = null
-//
-//                }
-//
-//                override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-//                    Log.d(TAG, "Ad failed to show.")
-//                    interstitialAd = null
-//                }
-//
-//                override fun onAdShowedFullScreenContent() {
-//                    Log.d(TAG, "Ad showed fullscreen content.")
-//                }
-//
-//                override fun onAdImpression() {
-//                    Log.d(TAG, "Ad recorded an impression.")
-//                }
-//
-//                override fun onAdClicked() {
-//                    Log.d(TAG, "Ad was clicked.")
-//                }
-//            }
-//        interstitialAd?.show(this)
-//}
+    fun loadInterstitialAd() {
+        InterstitialAd.load(
+            this,
+            "ca-app-pub-3940256099942544/1033173712",
+            AdRequest.Builder().build(),
+            object : InterstitialAdLoadCallback() {
+                override fun onAdLoaded(ad: InterstitialAd) {
+                    Log.d(TAG, "Ad was loaded.")
+                    interstitialAd = ad
+                }
+
+                override fun onAdFailedToLoad(adError: LoadAdError) {
+                    Log.d(TAG, adError.message)
+                    interstitialAd = null
+                }
+            },
+        )
+    }
+
+    fun showInterstitialAd() {
+        interstitialAd?.fullScreenContentCallback =
+            object : FullScreenContentCallback() {
+                override fun onAdDismissedFullScreenContent() {
+                    Log.d(TAG, "Ad was dismissed.")
+                    interstitialAd = null
+
+                }
+
+                override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                    Log.d(TAG, "Ad failed to show.")
+                    interstitialAd = null
+                }
+
+                override fun onAdShowedFullScreenContent() {
+                    Log.d(TAG, "Ad showed fullscreen content.")
+                }
+
+                override fun onAdImpression() {
+                    Log.d(TAG, "Ad recorded an impression.")
+                }
+
+                override fun onAdClicked() {
+                    Log.d(TAG, "Ad was clicked.")
+                }
+            }
+        interstitialAd?.show(this)
+    }
 
 }

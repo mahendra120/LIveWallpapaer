@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.WallpaperManager
 import android.content.ComponentName
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -13,6 +14,7 @@ import android.media.MediaScannerConnection
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -71,6 +73,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.GifDecoder
@@ -100,7 +103,9 @@ enum class wallpaperType {
 }
 
 class viewwallpapper : ComponentActivity() {
+
     var url: String? = null
+    var key: String? = null
     var Like by mutableStateOf(false)
 
     var TAG = "======"
@@ -111,8 +116,14 @@ class viewwallpapper : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        Like = key != null
+
         loadRewardedAd()
         url = intent.getStringExtra("url")
+        key = intent.getStringExtra("key")
+        Log.d("-----09", "onCreate: $key")
+
         setContent {
             Scaffold(modifier = Modifier.fillMaxSize(), topBar = { mytopbar() }, bottomBar = {
                 BottomAppBarWithAd(this@viewwallpapper)
@@ -134,7 +145,6 @@ class viewwallpapper : ComponentActivity() {
 
         val coin by AppPref.getIntLiveData(this@viewwallpapper, "coin", 10).observeAsState(10)
         Log.d("====303", "wallpapershow: $coin")
-
         val sharedPreferences =
             context.getSharedPreferences("wallpaper_prefs", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
@@ -171,32 +181,31 @@ class viewwallpapper : ComponentActivity() {
                 .padding(top = 795.dp),
             horizontalArrangement = Arrangement.Center
         ) {
-            if (!url!!.endsWith(".gif")) {
-                Button(
-                    onClick = {
-                        showRewardedAd()
-                    },
-                    modifier = Modifier
-                        .padding(bottom = 40.dp, start = 5.dp, end = 5.dp)
-                        .width(95.dp)
-                        .height(55.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        Color.Black
-                    ),
-                    border = BorderStroke(.4.dp, color = myColor)
+            Button(
+                onClick = {
+                    showRewardedAd()
+                },
+                modifier = Modifier
+                    .padding(bottom = 40.dp, start = 5.dp, end = 5.dp)
+                    .width(95.dp)
+                    .height(55.dp),
+                colors = ButtonDefaults.buttonColors(
+                    Color.Black
+                ),
+                border = BorderStroke(.4.dp, color = myColor)
+            )
+            {
+                Column(
+                    modifier = Modifier,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    Column(
-                        modifier = Modifier,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            Icons.Default.Download,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Text("Save", fontSize = 12.sp)
-                    }
+                    Icon(
+                        Icons.Default.Download,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text("Save", fontSize = 12.sp)
                 }
             }
             Button(
@@ -227,7 +236,7 @@ class viewwallpapper : ComponentActivity() {
             }
             Button(
                 onClick = {
-
+                    shareImage(this@viewwallpapper, url!!)
                 },
                 modifier = Modifier
                     .padding(bottom = 40.dp, start = 5.dp, end = 5.dp)
@@ -449,10 +458,15 @@ class viewwallpapper : ComponentActivity() {
                 Box(modifier = Modifier.padding(end = 15.dp, top = 15.dp)) {
                     Button(
                         onClick = {
-                            if (Like) {
-                                removeLike(url.toString())
+                            if (key == null) {
+                                if (Like) {
+                                    removeLike(key.toString())
+                                } else {
+                                    addLike(url.toString())
+                                }
                             } else {
-                                addLike(url.toString())
+                                removeLike(key.toString())
+                                finish()
                             }
                             Like = !Like
                         },
@@ -463,20 +477,31 @@ class viewwallpapper : ComponentActivity() {
                         contentPadding = PaddingValues(0.dp),
                         modifier = Modifier.size(45.dp)
                     ) {
-                        if (Like) {
+                        if (key == null) {
+                            if (Like) {
+                                Icon(
+                                    Icons.Default.Favorite,
+                                    contentDescription = null,
+                                    tint = Color.Red,
+                                    modifier = Modifier.size(27.dp)
+                                )
+                            } else {
+                                Icon(
+                                    Icons.Default.FavoriteBorder,
+                                    contentDescription = null,
+                                    tint = Color.Black,
+                                    modifier = Modifier.size(27.dp)
+                                )
+                                Like = false
+                            }
+                        } else {
                             Icon(
                                 Icons.Default.Favorite,
                                 contentDescription = null,
                                 tint = Color.Red,
                                 modifier = Modifier.size(27.dp)
                             )
-                        } else {
-                            Icon(
-                                Icons.Default.FavoriteBorder,
-                                contentDescription = null,
-                                tint = Color.Black,
-                                modifier = Modifier.size(27.dp)
-                            )
+
                         }
                     }
                 }
@@ -593,7 +618,11 @@ class viewwallpapper : ComponentActivity() {
             }
         }
         rewardedAd?.show(this) { rewardItem ->
-            downloadWallpaper(url!!)
+            if (url!!.endsWith(".gif")) {
+                saveGifToGallery(this@viewwallpapper, url!!)
+            } else {
+                downloadWallpaper(url!!)
+            }
         }
     }
 
@@ -644,6 +673,7 @@ class viewwallpapper : ComponentActivity() {
         }
     }
 
+    //updateConinln
     fun updateCoinInFirebase(userId: String, newCoin: Int) {
         val database = FirebaseDatabase.getInstance().getReference("users")
         database.child(userId).setValue(newCoin).addOnSuccessListener {
@@ -653,7 +683,8 @@ class viewwallpapper : ComponentActivity() {
         }
     }
 
-    @SuppressLint("NewApi") // For API checks
+    //live wallpaper set in home and lock
+    @SuppressLint("NewApi")
     fun setLiveWallpaper(context: Context) {
         val manager = WallpaperManager.getInstance(context)
         val service = ComponentName(context, GifWallpaperService::class.java)
@@ -669,7 +700,6 @@ class viewwallpapper : ComponentActivity() {
             }
         }
 
-        // Safety: Check if intent resolves
         if (intent.resolveActivity(context.packageManager) != null) {
             try {
                 context.startActivity(intent)
@@ -690,29 +720,125 @@ class viewwallpapper : ComponentActivity() {
         }
     }
 
+    //like
     fun addLike(url: String) {
         val database = FirebaseDatabase.getInstance().reference
         val auth = FirebaseAuth.getInstance()
         val uid = auth.currentUser?.uid ?: "no-user"
-        val ref = database.child("userslIke").child(uid).child("likes")
-        ref.push().setValue(url)
+        val ref = database.child("userslike").child(uid).child("likes").push()
+        key = ref.key
+        ref.setValue(url)
     }
 
-    fun removeLike(url: String) {
+    //unlike
+    fun removeLike(wallpaperId: String) {
         val database = FirebaseDatabase.getInstance().reference
         val auth = FirebaseAuth.getInstance()
         val uid = auth.currentUser?.uid ?: "no-user"
 
-        val wallpaperId = generateIdFromUrl(url)
         val ref = database.child("userslike").child(uid).child("likes").child(wallpaperId)
-        Log.d("========", "removeLike: ${ref.key}")
         ref.removeValue()
+        key = null
     }
 
+    //save gif
+    fun saveGifToGallery(context: Context, url: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // Download file
+                val connection = URL(url).openConnection()
+                connection.connect()
+                val input = connection.getInputStream()
 
-    private fun generateIdFromUrl(url: String): String {
-        return url.hashCode().toString()  // converts URL to a safe numeric ID
+                // File name
+                val fileName = "gif_${System.currentTimeMillis()}.gif"
+
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                    put(MediaStore.MediaColumns.MIME_TYPE, "image/gif")
+                    put(
+                        MediaStore.MediaColumns.RELATIVE_PATH,
+                        Environment.DIRECTORY_PICTURES + "/MyGifs"
+                    )
+                }
+
+                val uri = context.contentResolver.insert(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    contentValues
+                )
+
+                uri?.let {
+                    val output = context.contentResolver.openOutputStream(it)
+                    input.copyTo(output!!)
+                    output.close()
+                }
+
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "GIF saved to Gallery", Toast.LENGTH_SHORT).show()
+                }
+
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
+    // share gif
+    fun shareImage(context: Context, url: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // Download file
+                val connection = URL(url).openConnection()
+                connection.connect()
+                val input = connection.getInputStream()
+
+                // Detect file extension
+                val extension = when {
+                    url.endsWith(".gif", true) -> ".gif"
+                    url.endsWith(".png", true) -> ".png"
+                    else -> ".jpg"
+                }
+
+                // Save in cache
+                val file = File(context.cacheDir, "shared_${System.currentTimeMillis()}$extension")
+                val output = FileOutputStream(file)
+                input.copyTo(output)
+                output.close()
+                input.close()
+
+                // Get URI with FileProvider
+                val uri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.provider",
+                    file
+                )
+
+                // MIME type
+                val mimeType = when (extension) {
+                    ".gif" -> "image/gif"
+                    ".png" -> "image/png"
+                    else -> "image/jpeg"
+                }
+
+                // Share intent
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = mimeType
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+
+                withContext(Dispatchers.Main) {
+                    context.startActivity(Intent.createChooser(shareIntent, "Share Image"))
+                }
+
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
 }

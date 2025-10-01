@@ -104,7 +104,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-var ads_off_on by mutableStateOf(false)
+var ads_off_on by mutableStateOf(true)
 
 class MainActivity : ComponentActivity() {
 
@@ -156,12 +156,11 @@ class MainActivity : ComponentActivity() {
                             "Ads" -> {
                                 val intent = Intent(this@MainActivity, AdsScreen::class.java)
                                 startActivity(intent)
-                                search = false
-                                scope.launch { drawerState.close() }
+                                nevigetionlist = "Home"
                             }
 
                             "Like" -> {
-                                Like()
+                                Like(this@MainActivity, modifier = Modifier)
                                 scope.launch { drawerState.close() }
                             }
                         }
@@ -242,6 +241,7 @@ class MainActivity : ComponentActivity() {
                         context = this@MainActivity,
                         wallpapers?.home
                     )
+
                     "tree" -> treepage(modifier = Modifier, this@MainActivity, wallpapers?.tree)
                     "sea" -> seaPage(modifier = Modifier, this@MainActivity, wallpapers?.sea)
                     "car" -> CardPage(modifier = Modifier, this@MainActivity, wallpapers?.car)
@@ -446,7 +446,7 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier
                                 .size(33.dp)
                         )
-                        if (coin >= 100){
+                        if (coin >= 100) {
                             Text(
                                 text = "${coin}",
                                 fontSize = 16.sp,
@@ -455,8 +455,7 @@ class MainActivity : ComponentActivity() {
                                 color = Color.White,
                                 modifier = Modifier.padding(start = 3.dp, top = 5.dp)
                             )
-                        }
-                        else{
+                        } else {
                             Text(
                                 text = "${coin}",
                                 fontSize = 18.sp,

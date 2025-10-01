@@ -6,4 +6,5 @@
     <string name="title_activity_showwallpaper">Showwallpaper</string>
     <string name="wallpaper_description">null\n</string>
     <string name="title_activity_ads_screen">AdsScreen</string>
+    <string name="title_activity_premium">PremiumActivity</string>
 </resources>

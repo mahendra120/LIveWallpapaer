@@ -2,10 +2,12 @@ package com.example.livewallpapaer.ads
 
 import android.content.Context
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.livewallpapaer.ads_off_on
 import com.google.android.gms.ads.AdRequest
@@ -32,6 +34,6 @@ fun BottomAppBarWithAd(context: Context) {
         }
 
         AndroidView(
-            modifier = Modifier.fillMaxWidth(), factory = { adView })
+            modifier = Modifier.fillMaxWidth().padding(bottom = 5.dp), factory = { adView })
     }
 }

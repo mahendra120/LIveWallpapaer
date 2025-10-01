@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
     <!-- ✅ Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -17,47 +16,54 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.LIveWallpapaer">
-
+        <activity
+            android:name=".PremiumActivity"
+            android:exported="false"
+            android:label="@string/title_activity_premium"
+            android:theme="@style/Theme.LIveWallpapaer" />
         <!-- ✅ AdMob App ID (replace before release) -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-3940256099942544~3347511713" />
-
         <meta-data
             android:name="com.google.android.gms.ads.flag.NATIVE_AD_DEBUGGER_ENABLED"
-            android:value="false" />
-
-        <!-- Activities -->
+            android:value="false" /> <!-- Activities -->
         <activity
             android:name=".ads.AdsScreen"
             android:exported="false"
             android:label="@string/title_activity_ads_screen"
             android:theme="@style/Theme.LIveWallpapaer" />
-
         <activity
             android:name=".viewwallpapper"
             android:exported="false"
             android:label="@string/title_activity_showwallpaper"
             android:theme="@style/Theme.LIveWallpapaer" />
 
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
         <activity
             android:name=".MainActivity"
             android:exported="false"
             android:label="@string/title_activity_banner_ad"
             android:theme="@style/Theme.LIveWallpapaer" />
-
         <activity
             android:name=".ads.BannerAdActivity"
             android:exported="false"
             android:label="@string/title_activity_login_page"
             android:theme="@style/Theme.LIveWallpapaer" />
-
         <activity
             android:name=".RegisterPage.SignupPage"
             android:exported="false"
             android:label="@string/title_activity_login_page"
             android:theme="@style/Theme.LIveWallpapaer" />
-
         <activity
             android:name=".RegisterPage.LoginPage"
             android:exported="true"
@@ -65,11 +71,10 @@
             android:theme="@style/Theme.LIveWallpapaer">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <!-- Wallpaper service -->
+        </activity> <!-- Wallpaper service -->
         <service
             android:name=".GifWallpaperService"
             android:exported="true"
@@ -77,9 +82,11 @@
             <intent-filter>
                 <action android:name="android.service.wallpaper.WallpaperService" />
             </intent-filter>
+
             <meta-data
                 android:name="android.service.wallpaper"
                 android:resource="@xml/my_wallpaper_info" />
         </service>
     </application>
+
 </manifest>

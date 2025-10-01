@@ -115,16 +115,7 @@ fun mountainsPage(modifier: Modifier = Modifier, context: Context, mountains: Li
                                         else -> SubcomposeAsyncImageContent(alignment = Alignment.Center)
                                     }
                                 }
-
-                                Icon(
-                                    painter = painterResource(R.drawable.crown),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(45.dp)
-                                        .align(Alignment.TopEnd)
-                                        .padding(end = 5.dp),
-                                    tint = Color.Yellow
-                                )
+                                Icons()
                             }
                         }
                     } else {

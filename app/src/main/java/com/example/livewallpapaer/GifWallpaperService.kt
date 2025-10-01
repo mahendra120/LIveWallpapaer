@@ -38,15 +38,16 @@ class GifWallpaperService : WallpaperService() {
         override fun onCreate(surfaceHolder: SurfaceHolder) {
             super.onCreate(surfaceHolder)
 
-            // SharedPreferences માંથી URL વાંચો
-            // Use this@GifWallpaperService to get the Context of the outer class
-            val sharedPreferences = this@GifWallpaperService.getSharedPreferences("wallpaper_prefs", Context.MODE_PRIVATE)
+            val sharedPreferences = this@GifWallpaperService.getSharedPreferences(
+                "wallpaper_prefs",
+                Context.MODE_PRIVATE
+            )
             val gifUrl = sharedPreferences.getString("gif_url", null)
 
             if (gifUrl != null) {
                 loadGifFromUrl(gifUrl)
             } else {
-                // Handle case where URL is null
+
             }
         }
 

@@ -116,16 +116,7 @@ fun animepage(modifier: Modifier = Modifier, context: Context, anime: List<Strin
                                         else -> SubcomposeAsyncImageContent(alignment = Alignment.Center)
                                     }
                                 }
-
-                                Icon(
-                                    painter = painterResource(R.drawable.crown),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(45.dp)
-                                        .align(Alignment.TopEnd)
-                                        .padding(end = 5.dp),
-                                    tint = Color.Yellow
-                                )
+                                Icons()
                             }
                         }
                     } else {
@@ -175,6 +166,7 @@ fun animepage(modifier: Modifier = Modifier, context: Context, anime: List<Strin
                                             )
                                         }
                                     }
+
                                     else -> SubcomposeAsyncImageContent()
                                 }
                             }
@@ -183,5 +175,22 @@ fun animepage(modifier: Modifier = Modifier, context: Context, anime: List<Strin
                 }
             }
         }
+    }
+}
+
+@Composable
+fun Icons() {
+    Box(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.crown1),
+            contentDescription = null,
+            modifier = Modifier
+                .size(35.dp)
+                .align(Alignment.TopEnd) // ✅ works inside BoxScope
+                .padding(end = 9.dp, top = 2.dp),
+            tint = Color.Yellow
+        )
     }
 }

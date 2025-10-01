@@ -12,3 +12,8 @@ data class WallpaperResponse(
     val animol: List<String>? = null,
     val anime: List<String>? = null,
 )
+
+data class LikeItem(
+    val key: String,
+    val url: String
+)

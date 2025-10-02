@@ -23,6 +23,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresPermission
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,6 +46,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -112,6 +114,7 @@ class viewwallpapper : ComponentActivity() {
 
     private var rewardedAd: RewardedAd? = null
 
+    var isDownloading by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -150,31 +153,40 @@ class viewwallpapper : ComponentActivity() {
         val editor = sharedPreferences.edit()
         editor.putString("gif_url", url)
         editor.apply()
-
-        AsyncImage(
-            model = url,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxSize()
-                .blur(
-                    radiusX = 5.dp,
-                    radiusY = 5.dp,
-                    edgeTreatment = BlurredEdgeTreatment(RoundedCornerShape(8.dp)),
-                ),
-        )
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current).data(url)
-                .decoderFactory(GifDecoder.Factory()).build(),
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(9.dp)
-                .clip(RoundedCornerShape(15.dp)),
-            contentScale = ContentScale.Fit,
-            alignment = Alignment.Center
-        )
-
+        if (isDownloading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color.White)
+            }
+        } else {
+            AsyncImage(
+                model = url,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .blur(
+                        radiusX = 5.dp,
+                        radiusY = 5.dp,
+                        edgeTreatment = BlurredEdgeTreatment(RoundedCornerShape(8.dp)),
+                    ),
+            )
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current).data(url)
+                    .decoderFactory(GifDecoder.Factory()).build(),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(9.dp)
+                    .clip(RoundedCornerShape(15.dp)),
+                contentScale = ContentScale.Fit,
+                alignment = Alignment.Center
+            )
+        }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -274,8 +286,6 @@ class viewwallpapper : ComponentActivity() {
                     ) {
                         Button(
                             onClick = {
-
-
                                 if (coin >= 3) {
                                     val user = FirebaseAuth.getInstance().currentUser
                                     AppPref.setInt(this@viewwallpapper, "coin", coin - 3)
@@ -619,59 +629,57 @@ class viewwallpapper : ComponentActivity() {
         }
         rewardedAd?.show(this) { rewardItem ->
             if (url!!.endsWith(".gif")) {
+                isDownloading = true
                 saveGifToGallery(this@viewwallpapper, url!!)
             } else {
-                downloadWallpaper(url!!)
+                isDownloading = true
+                downloadWallpaper(this@viewwallpapper, url!!)
             }
         }
     }
 
-    fun downloadWallpaper(imageUrl: String) {
+    fun downloadWallpaper(context: Context, imageUrl: String) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Open stream from URL
+                withContext(Dispatchers.Main) {
+                    isDownloading = true
+                }
+
                 val url = URL(imageUrl)
                 val connection = url.openConnection()
                 connection.connect()
                 val inputStream = connection.getInputStream()
-
-                // Decode bitmap from stream
                 val bitmap = BitmapFactory.decodeStream(inputStream)
 
-                // Unique file name
                 val fileName = "wallpaper_${System.currentTimeMillis()}.jpg"
                 val file = File(
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
                     fileName
                 )
 
-                // Save to file
                 FileOutputStream(file).use { out ->
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
                 }
 
-                // Make visible in gallery
                 MediaScannerConnection.scanFile(
-                    this@viewwallpapper, arrayOf(file.absolutePath), arrayOf("image/jpeg"), null
+                    context, arrayOf(file.absolutePath), arrayOf("image/jpeg"), null
                 )
 
-                // Toast on main thread
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        this@viewwallpapper, "Download successful: $fileName", Toast.LENGTH_SHORT
-                    ).show()
+                    isDownloading = false
+                    Toast.makeText(context, "Download successful: $fileName", Toast.LENGTH_SHORT)
+                        .show()
                 }
-
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        this@viewwallpapper, "Download failed", Toast.LENGTH_SHORT
-                    ).show()
+                    isDownloading = false
+                    Toast.makeText(context, "Download failed", Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
+
 
     //updateConinln
     fun updateCoinInFirebase(userId: String, newCoin: Int) {
@@ -745,6 +753,9 @@ class viewwallpapper : ComponentActivity() {
     fun saveGifToGallery(context: Context, url: String) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                withContext(Dispatchers.Main) {
+                    isDownloading = true
+                }
                 // Download file
                 val connection = URL(url).openConnection()
                 connection.connect()
@@ -774,11 +785,13 @@ class viewwallpapper : ComponentActivity() {
                 }
 
                 withContext(Dispatchers.Main) {
+                    isDownloading = false
                     Toast.makeText(context, "GIF saved to Gallery", Toast.LENGTH_SHORT).show()
                 }
 
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
+                    isDownloading = false
                     Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }

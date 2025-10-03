@@ -448,7 +448,7 @@ class viewwallpapper : ComponentActivity() {
                     if (url!!.endsWith(".gif")) {
                         Row {
                             Image(
-                                painter = painterResource(R.drawable.crown),
+                                painter = painterResource(R.drawable.crown1),
                                 contentDescription = null,
                                 modifier = Modifier
                                     .size(55.dp)

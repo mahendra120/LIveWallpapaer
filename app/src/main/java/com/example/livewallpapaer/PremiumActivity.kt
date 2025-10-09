@@ -3,13 +3,12 @@ package com.example.livewallpapaer
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,25 +32,24 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.livewallpapaer.ads.AdsScreen
-import com.example.livewallpapaer.ui.theme.LIveWallpapaerTheme
-import com.example.livewallpapaer.ui.theme.quicksand
+import com.example.livewallpapaer.ui.theme.montserrat
+import com.razorpay.Checkout
+import com.razorpay.PaymentResultListener
+import org.json.JSONException
+import org.json.JSONObject
 
-class PremiumActivity : ComponentActivity() {
+class PremiumActivity : ComponentActivity(), PaymentResultListener {
 
     var expanded1monthcard by mutableStateOf(false)
     var expanded6monthcard by mutableStateOf(false)
@@ -103,8 +101,8 @@ class PremiumActivity : ComponentActivity() {
                     onClick = { expanded1monthcard = !expanded1monthcard },
                     colorDark = true,
                     month = "1 Month",
-                    price = "59",
-                    discountedPrice = "99",
+                    price = "69",
+                    discountedPrice = "199",
                     expanded = expanded1monthcard,
                 )
                 Spacer(Modifier.padding(10.dp))
@@ -164,6 +162,7 @@ class PremiumActivity : ComponentActivity() {
                         text = month,
                         color = if (colorDark) Color.White else Color.Black,
                         fontSize = 20.sp,
+                        fontFamily = montserrat,
                         fontWeight = FontWeight.Bold
                     )
 
@@ -172,6 +171,7 @@ class PremiumActivity : ComponentActivity() {
                             text = "-40% ",
                             color = if (colorDark) Color.White else Color.DarkGray.copy(0.8f),
                             fontSize = 20.sp,
+                            fontFamily = montserrat,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
@@ -179,6 +179,7 @@ class PremiumActivity : ComponentActivity() {
                             color = if (colorDark) Color.LightGray else Color.DarkGray.copy(0.8f),
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
+                            fontFamily = montserrat,
                             textDecoration = TextDecoration.LineThrough
                         )
                         Spacer(modifier = Modifier.width(4.dp))
@@ -186,35 +187,100 @@ class PremiumActivity : ComponentActivity() {
                             text = "₹$price",
                             color = if (colorDark) Color.Yellow else Color.Black,
                             fontSize = 20.sp,
+                            fontFamily = montserrat,
                             fontWeight = FontWeight.Bold
                         )
                     }
                 }
-
                 AnimatedVisibility(visible = expanded) {
                     Column(modifier = Modifier.padding(start = 18.dp, bottom = 12.dp)) {
                         Text(
                             "- No Ads",
-                            color = Color.Yellow,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
+                            color = if (colorDark) Color.Yellow else Color.Black,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold, fontFamily = montserrat
                         )
+                        Spacer(modifier = Modifier.padding(3.dp))
                         Text(
-                            "- Unlimited Wallpapers",
-                            color = Color.Yellow,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
+                            "- Unlimited Wallpapers set ",
+                            color = if (colorDark) Color.Yellow else Color.Black,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold, fontFamily = montserrat
                         )
+                        Spacer(modifier = Modifier.padding(3.dp))
                         Text(
-                            "- Exclusive Content",
-                            color = Color.Yellow,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
+                            "- Unlimited coins",
+                            color = if (colorDark) Color.Yellow else Color.Black,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold, fontFamily = montserrat
                         )
+                        Spacer(modifier = Modifier.padding(8.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(end = 13.dp),
+                            contentAlignment = Alignment.BottomEnd
+                        ) {
+                            Button(
+                                onClick = {
+                                    if (colorDark) {
+                                        val onemonth = 69
+                                        doPurchase(onemonth * 100)
+                                    } else {
+                                        val sixmonth = 359
+                                        doPurchase(sixmonth * 100)
+                                    }
+                                }, modifier = Modifier,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (colorDark) Color.Yellow else Color.Black
+                                ),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            {
+                                Text(
+                                    "Buy Now",
+                                    color = if (colorDark) Color.Black else Color.White,
+                                    fontFamily = montserrat,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
+    }
+
+    private fun doPurchase(amount: Int) {
+        val amountPaise = (amount * 100)
+        val checkout = Checkout()
+        checkout.setKeyID("rzp_test_Dd5eud3a91mnti")
+        val jsonObject = JSONObject()
+        try {
+            jsonObject.put("name", "First Payment")
+            jsonObject.put("description", "Test payment compose Integration")
+            jsonObject.put("currency", "INR")
+            jsonObject.put("amount", amount)
+            jsonObject.put("prefill.contact", "9106597990")
+            jsonObject.put("prefill.email", "test@gmail.com")
+
+            Log.d("900904", "doPurchase: $amountPaise")
+            checkout.open(this@PremiumActivity, jsonObject)
+        } catch (e: JSONException) {
+            e.printStackTrace()
+        }
+    }
+
+    override fun onPaymentSuccess(p0: String?) {
+        Toast.makeText(this, "Payment Success ✅", Toast.LENGTH_SHORT).show()
+
+    }
+
+    override fun onPaymentError(p0: Int, p1: String?) {
+        Log.d("=====", "onPaymentError: p0 :: $p0")
+        Log.d("=====", "onPaymentError: p1 :: $p1")
+        Toast.makeText(this, "Payment Failed ❌", Toast.LENGTH_SHORT).show()
     }
 }
 

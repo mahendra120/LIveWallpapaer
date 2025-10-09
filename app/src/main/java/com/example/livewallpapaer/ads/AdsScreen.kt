@@ -65,6 +65,7 @@ import androidx.compose.ui.window.Dialog
 import com.example.livewallpapaer.MainActivity
 import com.example.livewallpapaer.PremiumActivity
 import com.example.livewallpapaer.R
+import com.example.livewallpapaer.ui.theme.montserrat
 import com.example.livewallpapaer.ui.theme.quicksand
 import com.example.livewallpapaer.util.AppPref
 import com.google.android.gms.ads.AdError
@@ -176,6 +177,7 @@ class AdsScreen : ComponentActivity() {
                         "Unlock all features & remove ads",
                         fontSize = 15.sp,
                         color = Color.LightGray,
+                        fontFamily = montserrat,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
@@ -232,6 +234,7 @@ class AdsScreen : ComponentActivity() {
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         color = Color.LightGray,
+                            fontFamily = montserrat,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )

@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -77,7 +78,9 @@ fun seaPage(modifier: Modifier = Modifier,context : Context, sea: List<String>?)
                                 .size(height = 335.dp, width = Dp.Unspecified)
                                 .border(
                                     1.dp,
-                                    color = Color.Yellow.copy(alpha = 0.3f),
+                                    brush = Brush.horizontalGradient(
+                                        colors = rainbowColors
+                                    ),
                                     shape = RoundedCornerShape(12.dp)
                                 )
                                 .clip(RoundedCornerShape(12.dp)),
@@ -132,7 +135,9 @@ fun seaPage(modifier: Modifier = Modifier,context : Context, sea: List<String>?)
                                 .size(height = 335.dp, width = Dp.Unspecified)
                                 .border(
                                     1.dp,
-                                    color = Color.Yellow.copy(alpha = 0.3f),
+                                    brush = Brush.horizontalGradient(
+                                        colors = rainbowColors
+                                    ),
                                     shape = RoundedCornerShape(12.dp)
                                 )
                                 .clip(RoundedCornerShape(12.dp)),

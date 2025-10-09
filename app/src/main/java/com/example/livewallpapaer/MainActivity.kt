@@ -12,21 +12,24 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -34,8 +37,6 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DrawerState
@@ -49,11 +50,10 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -69,18 +69,17 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LiveData
-import com.example.livewallpapaer.ads.BottomAppBarWithAd
 import com.example.livewallpapaer.ads.AdsScreen
+import com.example.livewallpapaer.ads.BottomAppBarWithAd
 import com.example.livewallpapaer.ads.checkhome
 import com.example.livewallpapaer.category.settingpage
+import com.example.livewallpapaer.ui.theme.montserrat
 import com.example.livewallpapaer.ui.theme.quicksand
 import com.example.livewallpapaer.util.AppPref
 import com.example.livewallpapaer.util.SharedPrefLiveData
@@ -104,7 +103,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-var ads_off_on by mutableStateOf(true)
+var ads_off_on by mutableStateOf(false)
 
 class MainActivity : ComponentActivity() {
 
@@ -113,6 +112,8 @@ class MainActivity : ComponentActivity() {
     var search by mutableStateOf(false)
     var wallpapers by mutableStateOf<WallpaperResponse?>(null)
 
+    @OptIn(ExperimentalMaterial3Api::class)
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     @SuppressLint("CoroutineCreationDuringComposition")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -123,6 +124,7 @@ class MainActivity : ComponentActivity() {
         }
         loadCoin()
         setContent {
+            val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
             val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
             val scope = rememberCoroutineScope()
             ModalNavigationDrawer(
@@ -130,7 +132,7 @@ class MainActivity : ComponentActivity() {
                     MyDrawer()
                 }) {
                 Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
-                    Topbar(drawerState, scope)
+                    Topbar(drawerState, scope, scrollBehavior)
                 }, bottomBar = {
                     BottomAppBarWithAd(this@MainActivity)
                 }, containerColor = Color.Black) { innerPadding ->
@@ -148,7 +150,7 @@ class MainActivity : ComponentActivity() {
                             }
 
                             "Setting" -> {
-                                settingpage()
+                                settingpage(this@MainActivity)
                                 search = false
                                 scope.launch { drawerState.close() }
                             }
@@ -211,10 +213,7 @@ class MainActivity : ComponentActivity() {
                     Button(
                         onClick = { filterwallpaper = name },
                         modifier = Modifier.padding(horizontal = 5.dp, vertical = 8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            contentColor = Color(239, 226, 35, 255),
-                            containerColor = Color.Transparent
-                        ),
+                        colors = ButtonDefaults.buttonColors(contentColor = Color(239, 226, 35, 255), containerColor = Color.Transparent),
                         border = BorderStroke(
                             1.dp,
                             Brush.horizontalGradient(
@@ -226,22 +225,17 @@ class MainActivity : ComponentActivity() {
                             name,
                             fontSize = 17.sp,
                             fontWeight = FontWeight.Bold,
-                            fontFamily = quicksand
+                            fontFamily = montserrat
                         )
                     }
                 }
-            }
-            if (showsearchbox) {
-                mySearchBar()
             }
             if (hasInternet.value) {
                 when (filterwallpaper) {
                     "home" -> HomePage(
                         modifier = Modifier,
                         context = this@MainActivity,
-                        wallpapers?.home
-                    )
-
+                        wallpapers?.home)
                     "tree" -> treepage(modifier = Modifier, this@MainActivity, wallpapers?.tree)
                     "sea" -> seaPage(modifier = Modifier, this@MainActivity, wallpapers?.sea)
                     "car" -> CardPage(modifier = Modifier, this@MainActivity, wallpapers?.car)
@@ -298,109 +292,25 @@ class MainActivity : ComponentActivity() {
             }
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    fun mySearchBar() {
-        var searchQuery by remember { mutableStateOf("") }
-        var active by remember { mutableStateOf(false) }
-        val context = LocalContext.current
-        val allWallpapers = listOfNotNull(
-            wallpapers?.home,
-            wallpapers?.tree,
-            wallpapers?.sea,
-            wallpapers?.sky,
-            wallpapers?.car,
-            wallpapers?.mountains,
-            wallpapers?.animol,
-            wallpapers?.anime
-        ).flatten()
-        val filteredItems = if (searchQuery.isEmpty()) {
-            allWallpapers
-        } else {
-            allWallpapers.filter { it.contains(searchQuery, ignoreCase = true) }
-        }
-
-        SearchBar(
-            query = searchQuery,
-            onQueryChange = { searchQuery = it },
-            onSearch = { active = false },
-            shape = RoundedCornerShape(12.dp),
-            active = active,
-            onActiveChange = { active = it },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 7.dp, vertical = 5.dp)
-                .border(
-                    .05.dp, brush = Brush.horizontalGradient(
-                        colors = listOf(
-                            Color(0xFFEFE223), // Yellow
-                            Color(0xFFFF8C00), // Orange
-                            Color(0xFFFF4500)  // Reddish Orange
-                        )
-                    ), shape = RoundedCornerShape(12.dp)
-                ),
-            windowInsets = WindowInsets(
-                left = 0.dp, right = 0.dp, top = 0.dp, bottom = 0.dp
-            ),
-            placeholder = {
-                Text(
-                    "Search",
-                    fontFamily = quicksand,
-                    color = Color.White,
-                    fontSize = 18.sp,
-                )
-            },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Rounded.Search,
-                    contentDescription = null,
-                    tint = Color.Yellow
-                )
-            },
-            trailingIcon = {
-                if (active) IconButton(onClick = {
-                    searchQuery = ""
-                    active = false
-                }, colors = IconButtonDefaults.iconButtonColors(contentColor = Color.Yellow)) {
-                    Icon(imageVector = Icons.Rounded.Close, contentDescription = null)
-                }
-            },
-            colors = SearchBarDefaults.colors(
-                containerColor = Color.Black
-            ),
-            tonalElevation = 0.dp,
-        ) {
-//            LazyColumn {
-//                item {
-//                    LazyVerticalGrid(columns = GridCells.Fixed(2)) {
-//                        items(filteredItems) { url ->
-//                            Card(
-//                                modifier = Modifier.padding(6.dp),
-//                                onClick = {
-//                                    val intent = Intent(context, Showwallpaper::class.java)
-//                                    intent.putExtra("url", url)
-//                                    context.startActivity(intent)
-//                                }
-//                            ) {
-//                                AsyncImage(
-//                                    model = url,
-//                                    contentDescription = null,
-//                                    contentScale = ContentScale.Crop,
-//                                    modifier = Modifier.fillMaxSize()
-//                                )
-//                            }
-//                        }
-//                    }
-//
-//                }
-//            }
-        }
-    }
-
     @SuppressLint("CoroutineCreationDuringComposition")
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun Topbar(drawerState: DrawerState, scope: CoroutineScope) {
+    fun Topbar(
+        drawerState: DrawerState,
+        scope: CoroutineScope,
+        scrollBehavior: TopAppBarScrollBehavior
+    ) {
+        val infiniteTransition = rememberInfiniteTransition(label = "infinite")
+        val color by infiniteTransition.animateColor(
+            initialValue = Color.Green,
+            targetValue = Color.Blue,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1000, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "color"
+        )
+
         val coin by AppPref.getIntLiveData(this@MainActivity, "coin", 10).observeAsState(10)
         Log.d("======", "Topbar: $coin")
         TopAppBar(
@@ -468,6 +378,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             },
+            scrollBehavior = scrollBehavior,
             colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black),
             navigationIcon = {
                 IconButton(onClick = {
@@ -484,7 +395,6 @@ class MainActivity : ComponentActivity() {
             })
     }
 
-
     data class NavItem(
         val label: String, val icon: ImageVector
     )
@@ -498,6 +408,16 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun MyDrawer() {
+        val infiniteTransition = rememberInfiniteTransition(label = "infinite")
+        val color by infiniteTransition.animateColor(
+            initialValue = Color.Green,
+            targetValue = Color.Blue,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1000, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "color"
+        )
         ModalDrawerSheet(drawerContentColor = Color.White, drawerContainerColor = Color.Black) {
             Text(
                 "Live Wallpaper",
@@ -510,8 +430,8 @@ class MainActivity : ComponentActivity() {
                             Color(0xFFFF8C00), // Orange
                             Color(0xFFFF4500)  // Reddish Orange
                         )
-                    ), textAlign = TextAlign.Center
-                )
+                    )
+                ),
             )
             HorizontalDivider(modifier = Modifier.padding(horizontal = 15.dp))
             navItemList.forEachIndexed { index, item ->
@@ -520,7 +440,7 @@ class MainActivity : ComponentActivity() {
                         text = item.label,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        fontFamily = quicksand,
+                        fontFamily = montserrat,
                         modifier = Modifier.padding(all = 5.dp),
                         style = TextStyle(
                             brush = Brush.horizontalGradient(
@@ -553,7 +473,6 @@ class MainActivity : ComponentActivity() {
             networkInfo != null && networkInfo.isConnected
         }
     }
-
     fun SharedPreferences.intLiveData(key: String, defValue: Int = 0): LiveData<Int> {
         return SharedPrefLiveData(this, key, defValue)
     }

@@ -28,6 +28,19 @@ object AppPref {
         return sp!!.getInt(key, defaultValue)
     }
 
+    fun getString(context: Context, key: String, defaultValue: String = ""): String {
+        init(context)
+        return sp!!.getString(key, defaultValue) ?: defaultValue
+    }
+
+    fun setString(context: Context, key: String, value: String = "") {
+        init(context)
+        sp!!.edit().apply {
+            putString(key, value)
+            apply()
+        }
+    }
+
     fun setInt(context: Context, key: String, value: Int = 0) {
         init(context)
         sp!!.edit().apply {

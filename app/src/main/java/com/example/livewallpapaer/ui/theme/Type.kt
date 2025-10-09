@@ -16,6 +16,10 @@ val quicksand = FontFamily(
 val toot = FontFamily(
     Font(R.font.play, FontWeight.Normal),
 )
+
+val montserrat = FontFamily(
+    Font(R.font.montserrat, FontWeight.Normal),
+)
 val Typography = Typography(
     bodyLarge = TextStyle(
         fontFamily = FontFamily.Default,

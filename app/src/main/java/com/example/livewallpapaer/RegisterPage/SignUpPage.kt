@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.livewallpapaer.R
 import com.example.livewallpapaer.ui.theme.quicksand
+import com.example.livewallpapaer.util.AppPref
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 
@@ -110,6 +111,9 @@ class SignupPage : ComponentActivity() {
             Spacer(modifier = Modifier.padding(vertical = 22.dp))
             Button(
                 onClick = {
+                    AppPref.setString(this@SignupPage, "name", name)
+                    AppPref.setString(this@SignupPage, "surname", surname)
+                    AppPref.setString(this@SignupPage, "email", email)
                     SignUp1(this@SignupPage, email, Password)
                 },
                 modifier = Modifier

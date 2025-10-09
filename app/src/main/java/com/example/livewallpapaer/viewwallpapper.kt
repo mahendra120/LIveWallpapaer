@@ -297,8 +297,6 @@ class viewwallpapper : ComponentActivity() {
                                         .show()
                                 }
                             },
-
-
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(
                                     64, 224, 208
@@ -451,8 +449,8 @@ class viewwallpapper : ComponentActivity() {
                                 painter = painterResource(R.drawable.crown1),
                                 contentDescription = null,
                                 modifier = Modifier
-                                    .size(55.dp)
-                                    .padding(end = 5.dp)
+                                    .size(45.dp)
+                                    .padding(end = 5.dp, top = 15.dp)
                             )
                             Text(
                                 "Premium",

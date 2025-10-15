@@ -77,6 +77,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LiveData
 import com.example.livewallpapaer.ads.AdsScreen
 import com.example.livewallpapaer.ads.BottomAppBarWithAd
+import com.example.livewallpapaer.ads.InterstitialAdManager
 import com.example.livewallpapaer.ads.checkhome
 import com.example.livewallpapaer.category.settingpage
 import com.example.livewallpapaer.ui.theme.montserrat
@@ -95,6 +96,7 @@ import com.example.livewallpapaer.wallpapercategory.seaPage
 import com.example.livewallpapaer.wallpapercategory.treepage
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.google.android.gms.ads.MobileAds
 import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.auth
@@ -107,7 +109,6 @@ var ads_off_on by mutableStateOf(false)
 
 class MainActivity : ComponentActivity() {
 
-    var showsearchbox by mutableStateOf(false)
     var nevigetionlist: String? by mutableStateOf("Home")
     var search by mutableStateOf(false)
     var wallpapers by mutableStateOf<WallpaperResponse?>(null)
@@ -174,6 +175,7 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun Homepage() {
+
         var filterwallpaper by remember { mutableStateOf("home") }
         var isRefreshing by remember { mutableStateOf(false) }
         val hasInternet = remember { mutableStateOf(isInternetAvailable(this)) }
@@ -213,7 +215,14 @@ class MainActivity : ComponentActivity() {
                     Button(
                         onClick = { filterwallpaper = name },
                         modifier = Modifier.padding(horizontal = 5.dp, vertical = 8.dp),
-                        colors = ButtonDefaults.buttonColors(contentColor = Color(239, 226, 35, 255), containerColor = Color.Transparent),
+                        colors = ButtonDefaults.buttonColors(
+                            contentColor = Color(
+                                239,
+                                226,
+                                35,
+                                255
+                            ), containerColor = Color.Transparent
+                        ),
                         border = BorderStroke(
                             1.dp,
                             Brush.horizontalGradient(
@@ -235,7 +244,9 @@ class MainActivity : ComponentActivity() {
                     "home" -> HomePage(
                         modifier = Modifier,
                         context = this@MainActivity,
-                        wallpapers?.home)
+                        wallpapers?.home
+                    )
+
                     "tree" -> treepage(modifier = Modifier, this@MainActivity, wallpapers?.tree)
                     "sea" -> seaPage(modifier = Modifier, this@MainActivity, wallpapers?.sea)
                     "car" -> CardPage(modifier = Modifier, this@MainActivity, wallpapers?.car)
@@ -473,8 +484,8 @@ class MainActivity : ComponentActivity() {
             networkInfo != null && networkInfo.isConnected
         }
     }
+
     fun SharedPreferences.intLiveData(key: String, defValue: Int = 0): LiveData<Int> {
         return SharedPrefLiveData(this, key, defValue)
     }
-
 }

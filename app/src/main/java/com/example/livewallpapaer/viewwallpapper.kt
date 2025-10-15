@@ -81,15 +81,11 @@ import coil.compose.AsyncImage
 import coil.decode.GifDecoder
 import coil.request.ImageRequest
 import coil.request.SuccessResult
+import com.example.livewallpapaer.ads.AdManager
 import com.example.livewallpapaer.ads.BottomAppBarWithAd
 import com.example.livewallpapaer.util.AppPref
 import com.example.livewallpapaer.wallpapercategory.myColor
-import com.google.android.gms.ads.AdError
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.FullScreenContentCallback
-import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.rewarded.RewardedAd
-import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.CoroutineScope
@@ -105,14 +101,13 @@ enum class wallpaperType {
 }
 
 class viewwallpapper : ComponentActivity() {
-
     var url: String? = null
     var key: String? = null
     var Like by mutableStateOf(false)
 
-    var TAG = "======"
+    val adManager = AdManager.getInstance(this@viewwallpapper)
 
-    private var rewardedAd: RewardedAd? = null
+    var saveimage_gifloading by mutableStateOf(false)
 
     var isDownloading by mutableStateOf(false)
 
@@ -121,8 +116,6 @@ class viewwallpapper : ComponentActivity() {
         enableEdgeToEdge()
 
         Like = key != null
-
-        loadRewardedAd()
         url = intent.getStringExtra("url")
         key = intent.getStringExtra("key")
         Log.d("-----09", "onCreate: $key")
@@ -143,16 +136,17 @@ class viewwallpapper : ComponentActivity() {
     fun wallpapershow() {
         val bottomSheetState = rememberModalBottomSheetState()
         var isShowBottomSheet by remember { mutableStateOf(false) }
-        val context = LocalContext.current
         val scope = rememberCoroutineScope()
 
         val coin by AppPref.getIntLiveData(this@viewwallpapper, "coin", 10).observeAsState(10)
         Log.d("====303", "wallpapershow: $coin")
         val sharedPreferences =
-            context.getSharedPreferences("wallpaper_prefs", Context.MODE_PRIVATE)
+            this@viewwallpapper.getSharedPreferences("wallpaper_prefs", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         editor.putString("gif_url", url)
         editor.apply()
+
+
         if (isDownloading) {
             Box(
                 modifier = Modifier
@@ -192,10 +186,36 @@ class viewwallpapper : ComponentActivity() {
                 .fillMaxWidth()
                 .padding(top = 795.dp),
             horizontalArrangement = Arrangement.Center
-        ) {
+        )
+        {
             Button(
                 onClick = {
-                    showRewardedAd()
+                    if (ads_off_on) {
+                        if (adManager.interstitialAdManager.isAdLoaded()) {
+                            adManager.showInterstitialAd {
+                                Toast.makeText(this@viewwallpapper, "Ad closed", Toast.LENGTH_SHORT)
+                                    .show()
+                                if (url!!.endsWith(".gif")) {
+                                    saveGifToGallery(this@viewwallpapper, url!!)
+                                } else {
+                                    downloadWallpaper(this@viewwallpapper, url!!)
+                                }
+                            }
+                        } else {
+                            Toast.makeText(
+                                this@viewwallpapper,
+                                "Ad not ready yet",
+                                Toast.LENGTH_SHORT
+                            )
+                                .show()
+                        }
+                    } else {
+                        if (url!!.endsWith(".gif")) {
+                            saveGifToGallery(this@viewwallpapper, url!!)
+                        } else {
+                            downloadWallpaper(this@viewwallpapper, url!!)
+                        }
+                    }
                 },
                 modifier = Modifier
                     .padding(bottom = 40.dp, start = 5.dp, end = 5.dp)
@@ -207,17 +227,27 @@ class viewwallpapper : ComponentActivity() {
                 border = BorderStroke(.4.dp, color = myColor)
             )
             {
-                Column(
-                    modifier = Modifier,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        Icons.Default.Download,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Text("Save", fontSize = 12.sp)
+                if (saveimage_gifloading) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(
+                            color = myColor,
+                            strokeWidth = 2.dp,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Download,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text("Save", fontSize = 12.sp)
+                    }
                 }
             }
             Button(
@@ -248,7 +278,30 @@ class viewwallpapper : ComponentActivity() {
             }
             Button(
                 onClick = {
-                    shareImage(this@viewwallpapper, url!!)
+                    if (ads_off_on) {
+                        if (adManager.interstitialAdManager.isAdLoaded()) {
+                            Toast.makeText(
+                                this@viewwallpapper,
+                                "share success full ",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            shareImage(this@viewwallpapper, url!!)
+                        } else {
+                            Toast.makeText(
+                                this@viewwallpapper,
+                                "Ad not ready yet",
+                                Toast.LENGTH_SHORT
+                            )
+                                .show()
+                        }
+                    } else {
+                        Toast.makeText(
+                            this@viewwallpapper,
+                            "share success full ",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        shareImage(this@viewwallpapper, url!!)
+                    }
                 },
                 modifier = Modifier
                     .padding(bottom = 40.dp, start = 5.dp, end = 5.dp)
@@ -273,7 +326,6 @@ class viewwallpapper : ComponentActivity() {
                 }
             }
         }
-
         if (isShowBottomSheet) {
             ModalBottomSheet(onDismissRequest = {
                 isShowBottomSheet = false
@@ -286,14 +338,20 @@ class viewwallpapper : ComponentActivity() {
                     ) {
                         Button(
                             onClick = {
-                                if (coin >= 3) {
+                                if (coin >= 3 || !ads_off_on) {
                                     val user = FirebaseAuth.getInstance().currentUser
-                                    AppPref.setInt(this@viewwallpapper, "coin", coin - 3)
-                                    if (user != null) {
-                                        updateCoinInFirebase(user.uid, coin)
+                                    if (ads_off_on) {
+                                        AppPref.setInt(this@viewwallpapper, "coin", coin - 3)
+                                    } else {
+                                        AppPref.setInt(this@viewwallpapper, "coin", coin)
                                     }
+                                    updateCoinInFirebase(user!!.uid, coin)
                                 } else {
-                                    Toast.makeText(this@viewwallpapper, "----", Toast.LENGTH_SHORT)
+                                    Toast.makeText(
+                                        this@viewwallpapper,
+                                        "your coin is low ...",
+                                        Toast.LENGTH_SHORT
+                                    )
                                         .show()
                                 }
                             },
@@ -340,7 +398,8 @@ class viewwallpapper : ComponentActivity() {
                             onClick = {
                                 url?.let { imageUrl ->
                                     scope.launch {
-                                        val bitmap = loadBitmapFromUrl(context, imageUrl)
+                                        val bitmap =
+                                            loadBitmapFromUrl(this@viewwallpapper, imageUrl)
                                         if (bitmap != null) {
                                             setMyWallpaper(bitmap, wallpaperType.HOME)
                                         }
@@ -372,7 +431,8 @@ class viewwallpapper : ComponentActivity() {
                             onClick = {
                                 url?.let { imageUrl ->
                                     scope.launch {
-                                        val bitmap = loadBitmapFromUrl(context, imageUrl)
+                                        val bitmap =
+                                            loadBitmapFromUrl(this@viewwallpapper, imageUrl)
                                         if (bitmap != null) {
                                             setMyWallpaper(bitmap, wallpaperType.LOCK)
                                         }
@@ -404,7 +464,8 @@ class viewwallpapper : ComponentActivity() {
                             onClick = {
                                 url?.let { imageUrl ->
                                     scope.launch {
-                                        val bitmap = loadBitmapFromUrl(context, imageUrl)
+                                        val bitmap =
+                                            loadBitmapFromUrl(this@viewwallpapper, imageUrl)
                                         if (bitmap != null) {
                                             setMyWallpaper(bitmap, wallpaperType.BOTH)
                                         }
@@ -509,7 +570,6 @@ class viewwallpapper : ComponentActivity() {
                                 tint = Color.Red,
                                 modifier = Modifier.size(27.dp)
                             )
-
                         }
                     }
                 }
@@ -587,54 +647,6 @@ class viewwallpapper : ComponentActivity() {
         return (result as? BitmapDrawable)?.bitmap
     }
 
-    private fun loadRewardedAd() {
-        RewardedAd.load(
-            this, "ca-app-pub-3940256099942544/5224354917", // Test Rewarded ID
-            AdRequest.Builder().build(), object : RewardedAdLoadCallback() {
-                override fun onAdLoaded(ad: RewardedAd) {
-                    Log.d(TAG, "Ad was loaded ✅")
-                    rewardedAd = ad
-                }
-
-                override fun onAdFailedToLoad(adError: LoadAdError) {
-                    Log.e(TAG, "Ad failed to load ❌: ${adError.message}")
-                    rewardedAd = null
-                }
-            })
-    }
-
-    private fun showRewardedAd() {
-        if (rewardedAd == null) {
-            Toast.makeText(this, "please wait!", Toast.LENGTH_SHORT).show()
-            loadRewardedAd()
-            return
-        }
-        rewardedAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
-            override fun onAdDismissedFullScreenContent() {
-                Log.d(TAG, "Ad dismissed")
-                rewardedAd = null
-                loadRewardedAd() // preload again
-            }
-
-            override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-                Log.e(TAG, "Ad failed to show ❌: ${adError.message}")
-                rewardedAd = null
-            }
-
-            override fun onAdShowedFullScreenContent() {
-                Log.d(TAG, "Ad showed fullscreen")
-            }
-        }
-        rewardedAd?.show(this) { rewardItem ->
-            if (url!!.endsWith(".gif")) {
-                isDownloading = true
-                saveGifToGallery(this@viewwallpapper, url!!)
-            } else {
-                isDownloading = true
-                downloadWallpaper(this@viewwallpapper, url!!)
-            }
-        }
-    }
 
     fun downloadWallpaper(context: Context, imageUrl: String) {
         CoroutineScope(Dispatchers.IO).launch {
@@ -678,12 +690,10 @@ class viewwallpapper : ComponentActivity() {
         }
     }
 
-
-    //updateConinln
     fun updateCoinInFirebase(userId: String, newCoin: Int) {
         val database = FirebaseDatabase.getInstance().getReference("users")
         database.child(userId).setValue(newCoin).addOnSuccessListener {
-            setLiveWallpaper(this@viewwallpapper)
+            setLiveWallpaper()
         }.addOnFailureListener { e ->
             Log.e("Firebase", "Failed to update coin: ${e.message}")
         }
@@ -691,9 +701,9 @@ class viewwallpapper : ComponentActivity() {
 
     //live wallpaper set in home and lock
     @SuppressLint("NewApi")
-    fun setLiveWallpaper(context: Context) {
-        val manager = WallpaperManager.getInstance(context)
-        val service = ComponentName(context, GifWallpaperService::class.java)
+    fun setLiveWallpaper() {
+        val manager = WallpaperManager.getInstance(this@viewwallpapper)
+        val service = ComponentName(this@viewwallpapper, GifWallpaperService::class.java)
 
         val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER).apply {
@@ -706,20 +716,21 @@ class viewwallpapper : ComponentActivity() {
             }
         }
 
-        if (intent.resolveActivity(context.packageManager) != null) {
+        if (intent.resolveActivity(this@viewwallpapper.packageManager) != null) {
             try {
-                context.startActivity(intent)
-                Toast.makeText(context, "Setting live wallpaper...", Toast.LENGTH_SHORT).show()
+                this@viewwallpapper.startActivity(intent)
+                Toast.makeText(this@viewwallpapper, "Setting live wallpaper...", Toast.LENGTH_SHORT)
+                    .show()
             } catch (e: Exception) {
                 Toast.makeText(
-                    context,
+                    this@viewwallpapper,
                     "Unable to set wallpaper: ${e.localizedMessage}",
                     Toast.LENGTH_LONG
                 ).show()
             }
         } else {
             Toast.makeText(
-                context,
+                this@viewwallpapper,
                 "Live wallpaper not supported on this device.",
                 Toast.LENGTH_LONG
             ).show()
@@ -741,7 +752,6 @@ class viewwallpapper : ComponentActivity() {
         val database = FirebaseDatabase.getInstance().reference
         val auth = FirebaseAuth.getInstance()
         val uid = auth.currentUser?.uid ?: "no-user"
-
         val ref = database.child("userslike").child(uid).child("likes").child(wallpaperId)
         ref.removeValue()
         key = null

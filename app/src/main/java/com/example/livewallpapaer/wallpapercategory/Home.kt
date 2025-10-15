@@ -60,7 +60,6 @@ fun HomePage(modifier: Modifier = Modifier, context: Context, home: List<String>
         state = rememberSwipeRefreshState(isRefreshing),
         onRefresh = {
             isRefreshing = true
-            // Use coroutine scope
             coroutineScope.launch {
                 delay(1500)
                 isRefreshing = false
@@ -121,7 +120,6 @@ fun HomePage(modifier: Modifier = Modifier, context: Context, home: List<String>
                                                 )
                                             }
                                         }
-
                                         else -> SubcomposeAsyncImageContent(alignment = Alignment.Center)
                                     }
                                 }

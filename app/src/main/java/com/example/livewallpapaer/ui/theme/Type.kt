@@ -13,10 +13,6 @@ import com.example.livewallpapaer.R
 val quicksand = FontFamily(
     Font(R.font.tooto, FontWeight.Normal),
 )
-val toot = FontFamily(
-    Font(R.font.play, FontWeight.Normal),
-)
-
 val montserrat = FontFamily(
     Font(R.font.montserrat, FontWeight.Normal),
 )

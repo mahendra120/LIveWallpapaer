@@ -100,7 +100,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
-import androidx.xr.compose.testing.toDp
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
@@ -217,16 +216,10 @@ class LoginPage : ComponentActivity() {
         LaunchedEffect(Unit) {
             while (true) {
                 hasInternet.value = isInternetAvailable(this@LoginPage)
-                delay(3000)
-            }
-        }
-
-        LaunchedEffect(Unit) {
-            while (true) {
-                hasInternet.value = isInternetAvailable(this@LoginPage)
                 delay(1000)
             }
         }
+
         Log.d("90909090", "LoginScrenn: Internet connected")
         Image(
             painter = painterResource(R.drawable.signupscreenpage),
@@ -395,7 +388,8 @@ class LoginPage : ComponentActivity() {
                     loadinanimation("https://rklraibyrjctiuqhnyxj.supabase.co/storage/v1/object/public/wallpaperapp/project/From%20KlickPin%20CF%20Pin%20on%20Quick%20Saves.mp4")
                 }
             }
-        } else {
+        }
+        else {
             Log.d("90909090", "LoginScrenn: no Internet connected")
             Box(
                 modifier = Modifier
@@ -463,8 +457,6 @@ class LoginPage : ComponentActivity() {
             googleLoginOldAPI()
         }
     }
-
-    /** NEW API: Android 14+ (Credential Manager / Google Identity) with fallback on error */
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     private fun googleLoginNewAPIWithFallback() {
         try {
@@ -613,30 +605,29 @@ class LoginPage : ComponentActivity() {
 fun loadinanimation(mp4Uri: String) {
     val context = LocalContext.current
 
-    // Create ExoPlayer
+    val rawResourceUri = "android.resource://${context.packageName}/${R.raw.sharingan}"
+
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
-            val mediaItem = MediaItem.fromUri(mp4Uri)
+            val mediaItem = MediaItem.fromUri(rawResourceUri)
             setMediaItem(mediaItem)
-            repeatMode = Player.REPEAT_MODE_ALL // Loop animation
+            repeatMode = Player.REPEAT_MODE_ALL
             playWhenReady = true
             prepare()
         }
     }
 
-    // Dispose player when not needed
-    DisposableEffect(
-        AndroidView(factory = { PlayerView(context).apply { player = exoPlayer } })
-    ) {
+    DisposableEffect(Unit) {
         onDispose {
             exoPlayer.release()
         }
     }
+
     AndroidView(
         factory = {
             PlayerView(context).apply {
                 player = exoPlayer
-                useController = false // No controls
+                useController = false
                 layoutParams = ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT

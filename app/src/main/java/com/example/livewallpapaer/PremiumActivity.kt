@@ -44,16 +44,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.livewallpapaer.ads.AdsScreen
 import com.example.livewallpapaer.ui.theme.montserrat
+import com.google.firebase.Firebase
+import com.google.firebase.database.database
 import com.razorpay.Checkout
 import com.razorpay.PaymentResultListener
 import org.json.JSONException
 import org.json.JSONObject
 
 class PremiumActivity : ComponentActivity(), PaymentResultListener {
-
     var expanded1monthcard by mutableStateOf(false)
     var expanded6monthcard by mutableStateOf(false)
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -274,7 +274,8 @@ class PremiumActivity : ComponentActivity(), PaymentResultListener {
 
     override fun onPaymentSuccess(p0: String?) {
         Toast.makeText(this, "Payment Success ✅", Toast.LENGTH_SHORT).show()
-
+        Log.d("=====", "onPaymentSuccess: p0 :: $p0")
+        ads_off_on = false
     }
 
     override fun onPaymentError(p0: Int, p1: String?) {
@@ -282,5 +283,10 @@ class PremiumActivity : ComponentActivity(), PaymentResultListener {
         Log.d("=====", "onPaymentError: p1 :: $p1")
         Toast.makeText(this, "Payment Failed ❌", Toast.LENGTH_SHORT).show()
     }
+}
+
+
+fun adsoffonfirebase() {
+    val Database = Firebase.database
 }
 

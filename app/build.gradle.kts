@@ -55,15 +55,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.runtime.livedata)
-    implementation(libs.androidx.compose.testing)
     implementation(libs.androidx.media3.exoplayer)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation(platform("com.google.firebase:firebase-bom:34.2.0"))
     implementation("com.google.firebase:firebase-auth")
@@ -77,52 +69,41 @@ dependencies {
 
     implementation("com.google.android.gms:play-services-ads:24.6.0")
 
-    implementation("io.coil-kt:coil-compose:2.7.0")
     implementation(platform("com.google.firebase:firebase-bom:34.2.0"))
     implementation("com.google.firebase:firebase-database")
 
     implementation("com.google.firebase:firebase-database-ktx:21.0.0")
 
-    implementation("com.google.android.gms:play-services-ads:24.6.0")
 
-    implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("io.coil-kt:coil-gif:2.6.0")
-    implementation("io.coil-kt:coil-compose:2.4.0")
+
     implementation("androidx.compose.material:material-icons-extended:<version>")
 
     implementation("com.google.accompanist:accompanist-swiperefresh:0.34.0")
 
-    implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.27")
+    implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.29")
 
     // live wallpaper
     implementation("androidx.compose.ui:ui-android")
     implementation("androidx.compose.runtime:runtime")
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("com.google.android.gms:play-services-ads:23.1.0")
-
     implementation("io.coil-kt:coil-compose:2.5.0")
 
     implementation("com.google.firebase:firebase-auth-ktx:23.2.1")
-
     implementation("com.google.android.gms:play-services-auth:21.4.0")
+
 
     implementation("androidx.credentials:credentials:1.5.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.5.0")
-    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
     implementation("com.airbnb.android:lottie-compose:6.4.1")
-
     implementation("com.google.android.exoplayer:exoplayer:2.19.1")
     implementation("androidx.media3:media3-exoplayer:1.1.0")
     implementation("androidx.media3:media3-ui:1.1.0")
 
-
-    implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.28")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-
-
     //rezorpay
     implementation("com.razorpay:checkout:1.6.41")
-
 }

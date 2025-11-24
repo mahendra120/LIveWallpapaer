@@ -63,25 +63,17 @@ dependencies {
     implementation("com.google.firebase:firebase-database")
 
     //google sign in
-    implementation("androidx.credentials:credentials:1.3.0")
-    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
-    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
-
-    implementation("com.google.android.gms:play-services-ads:24.6.0")
-
-    implementation(platform("com.google.firebase:firebase-bom:34.2.0"))
-    implementation("com.google.firebase:firebase-database")
-
-    implementation("com.google.firebase:firebase-database-ktx:21.0.0")
-
-
-    implementation("io.coil-kt:coil-gif:2.6.0")
-
-    implementation("androidx.compose.material:material-icons-extended:<version>")
-
-    implementation("com.google.accompanist:accompanist-swiperefresh:0.34.0")
-
-    implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.29")
+        implementation("androidx.credentials:credentials:1.3.0")
+        implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+        implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+        implementation("com.google.android.gms:play-services-ads:24.6.0")
+        implementation(platform("com.google.firebase:firebase-bom:34.2.0"))
+        implementation("com.google.firebase:firebase-database")
+        implementation("com.google.firebase:firebase-database-ktx:21.0.0")
+        implementation("io.coil-kt:coil-gif:2.6.0")
+        implementation("androidx.compose.material:material-icons-extended:<version>")
+        implementation("com.google.accompanist:accompanist-swiperefresh:0.34.0")
+        implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.29")
 
     // live wallpaper
     implementation("androidx.compose.ui:ui-android")

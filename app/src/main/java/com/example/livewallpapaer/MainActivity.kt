@@ -432,7 +432,7 @@ class MainActivity : ComponentActivity() {
         ModalDrawerSheet(drawerContentColor = Color.White, drawerContainerColor = Color.Black) {
             Text(
                 "Live Wallpaper",
-                fontSize = 24.sp,
+                fontSize = 20.sp,
                 modifier = Modifier.padding(16.dp),
                 style = TextStyle(
                     brush = Brush.horizontalGradient(

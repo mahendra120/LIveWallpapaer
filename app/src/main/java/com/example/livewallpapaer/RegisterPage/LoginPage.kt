@@ -1,11 +1,9 @@
 package com.example.livewallpapaer.RegisterPage
 
-import android.R.attr.showText
 import android.content.Intent
 import android.credentials.GetCredentialException
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -15,17 +13,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.StartOffset
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -36,10 +23,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -61,33 +46,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Fill
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -100,11 +70,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants
-import com.airbnb.lottie.compose.animateLottieCompositionAsState
-import com.airbnb.lottie.compose.rememberLottieComposition
 import com.composables.Google
 import com.example.livewallpapaer.MainActivity
 import com.example.livewallpapaer.R
@@ -124,10 +89,6 @@ import com.google.firebase.auth.auth
 import com.google.firebase.database.database
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.io.path.Path
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.random.Random
 
 class LoginPage : ComponentActivity() {
     var isloadingandcolor by mutableStateOf(false)
@@ -135,6 +96,7 @@ class LoginPage : ComponentActivity() {
     var password by mutableStateOf("")
     var lodinganimation by mutableStateOf(false)
     var TAG = "===="
+
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
     private val RC_SIGN_IN = 9001
@@ -209,6 +171,7 @@ class LoginPage : ComponentActivity() {
 
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     @Composable
+    @Preview(showBackground = true)
     fun LoginScrenn() {
 
         val hasInternet = remember { mutableStateOf(isInternetAvailable(this)) }
@@ -388,8 +351,7 @@ class LoginPage : ComponentActivity() {
                     loadinanimation("https://rklraibyrjctiuqhnyxj.supabase.co/storage/v1/object/public/wallpaperapp/project/From%20KlickPin%20CF%20Pin%20on%20Quick%20Saves.mp4")
                 }
             }
-        }
-        else {
+        } else {
             Log.d("90909090", "LoginScrenn: no Internet connected")
             Box(
                 modifier = Modifier
@@ -441,7 +403,7 @@ class LoginPage : ComponentActivity() {
 
     private fun setupGoogleSignInClient() {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(getString(R.string.default_web_client_id)) // must be WEB client id
+            .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
             .build()
 
@@ -457,6 +419,7 @@ class LoginPage : ComponentActivity() {
             googleLoginOldAPI()
         }
     }
+
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     private fun googleLoginNewAPIWithFallback() {
         try {
@@ -570,7 +533,6 @@ class LoginPage : ComponentActivity() {
         }
     }
 
-    /** Shared Firebase auth step */
     private fun firebaseAuthWithGoogle(idToken: String) {
         val auth = Firebase.auth
         val credential = GoogleAuthProvider.getCredential(idToken, null)

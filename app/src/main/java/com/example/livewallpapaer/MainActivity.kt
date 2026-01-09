@@ -105,14 +105,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-var ads_off_on by mutableStateOf(false)
+var ads_off_on by mutableStateOf(true)
 
 class MainActivity : ComponentActivity() {
-
     var nevigetionlist: String? by mutableStateOf("Home")
     var search by mutableStateOf(false)
     var wallpapers by mutableStateOf<WallpaperResponse?>(null)
-
     @OptIn(ExperimentalMaterial3Api::class)
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     @SuppressLint("CoroutineCreationDuringComposition")
@@ -149,19 +147,16 @@ class MainActivity : ComponentActivity() {
                                 search = true
                                 scope.launch { drawerState.close() }
                             }
-
                             "Setting" -> {
                                 settingpage(this@MainActivity)
                                 search = false
                                 scope.launch { drawerState.close() }
                             }
-
                             "Ads" -> {
                                 val intent = Intent(this@MainActivity, AdsScreen::class.java)
                                 startActivity(intent)
                                 nevigetionlist = "Home"
                             }
-
                             "Like" -> {
                                 Like(this@MainActivity, modifier = Modifier)
                                 scope.launch { drawerState.close() }
@@ -175,7 +170,6 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun Homepage() {
-
         var filterwallpaper by remember { mutableStateOf("home") }
         var isRefreshing by remember { mutableStateOf(false) }
         val hasInternet = remember { mutableStateOf(isInternetAvailable(this)) }
@@ -246,23 +240,12 @@ class MainActivity : ComponentActivity() {
                         context = this@MainActivity,
                         wallpapers?.home
                     )
-
                     "tree" -> treepage(modifier = Modifier, this@MainActivity, wallpapers?.tree)
                     "sea" -> seaPage(modifier = Modifier, this@MainActivity, wallpapers?.sea)
                     "car" -> CardPage(modifier = Modifier, this@MainActivity, wallpapers?.car)
-                    "mountains" -> mountainsPage(
-                        modifier = Modifier,
-                        context = this@MainActivity,
-                        wallpapers?.mountains
-                    )
-
+                    "mountains" -> mountainsPage(modifier = Modifier,context = this@MainActivity, wallpapers?.mountains)
                     "sky" -> SkyPage(modifier = Modifier, this@MainActivity, wallpapers?.sky)
-                    "animal" -> animolpage(
-                        modifier = Modifier,
-                        this@MainActivity,
-                        wallpapers?.animol
-                    )
-
+                    "animal" -> animolpage(modifier = Modifier,this@MainActivity,wallpapers?.animol)
                     "anime" -> animepage(modifier = Modifier, this@MainActivity, wallpapers?.anime)
                 }
             } else {
@@ -353,37 +336,50 @@ class MainActivity : ComponentActivity() {
                 )
                 {
                     Row(modifier = Modifier.padding(end = 0.dp)) {
-                        Icon(
-                            Icons.Default.Add,
-                            contentDescription = null,
-                            tint = Color.Yellow,
-                            modifier = Modifier
-                                .size(27.dp)
-                                .padding(top = 7.dp)
-                        )
+                        if (ads_off_on) {
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = null,
+                                tint = Color.Yellow,
+                                modifier = Modifier
+                                    .size(27.dp)
+                                    .padding(top = 7.dp)
+                            )
+                        }
                         Image(
                             painter = painterResource(R.drawable.imageicon),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(33.dp)
                         )
-                        if (coin >= 100) {
-                            Text(
-                                text = "${coin}",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = quicksand,
-                                color = Color.White,
-                                modifier = Modifier.padding(start = 3.dp, top = 5.dp)
-                            )
+                        if (ads_off_on) {
+                            if (coin >= 100) {
+                                Text(
+                                    text = "${coin}",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = quicksand,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(start = 3.dp, top = 5.dp)
+                                )
+                            } else {
+                                Text(
+                                    text = "${coin}",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = quicksand,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(start = 3.dp, top = 5.dp)
+                                )
+                            }
                         } else {
                             Text(
-                                text = "${coin}",
-                                fontSize = 18.sp,
+                                "∞", fontSize = 22.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = quicksand,
                                 color = Color.White,
-                                modifier = Modifier.padding(start = 3.dp, top = 5.dp)
+                                modifier = Modifier
+                                    .padding(start = 3.dp)
                             )
                         }
                     }

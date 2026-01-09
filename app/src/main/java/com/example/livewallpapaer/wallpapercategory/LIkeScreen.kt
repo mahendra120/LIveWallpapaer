@@ -88,7 +88,7 @@ fun Like(context: Context, modifier: Modifier) {
                         },
                         modifier = modifier
                             .fillMaxWidth()
-                            .padding(4.dp)
+                            .padding(10.dp)
                             .size(height = 335.dp, width = Dp.Unspecified)
                             .border(
                                 1.dp,
@@ -127,10 +127,10 @@ fun Like(context: Context, modifier: Modifier) {
                                             )
                                         }
                                     }
+
                                     else -> SubcomposeAsyncImageContent(alignment = Alignment.Center)
                                 }
                             }
-
                             Icon(
                                 painter = painterResource(R.drawable.crown1),
                                 contentDescription = null,
@@ -152,7 +152,7 @@ fun Like(context: Context, modifier: Modifier) {
                         },
                         modifier = modifier
                             .fillMaxWidth()
-                            .padding(4.dp)
+                            .padding(10.dp)
                             .size(height = 335.dp, width = Dp.Unspecified)
                             .border(
                                 1.dp,
@@ -192,6 +192,7 @@ fun Like(context: Context, modifier: Modifier) {
                                         )
                                     }
                                 }
+
                                 else -> SubcomposeAsyncImageContent()
                             }
                         }

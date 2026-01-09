@@ -74,7 +74,7 @@ fun CardPage(modifier: Modifier = Modifier, context: Context, car: List<String>?
                             },
                             modifier = modifier
                                 .fillMaxWidth()
-                                .padding(4.dp)
+                                .padding(10.dp)
                                 .size(height = 335.dp, width = Dp.Unspecified)
                                 .border(
                                     1.dp,
@@ -131,7 +131,7 @@ fun CardPage(modifier: Modifier = Modifier, context: Context, car: List<String>?
                             },
                             modifier = modifier
                                 .fillMaxWidth()
-                                .padding(4.dp)
+                                .padding(10.dp)
                                 .size(height = 335.dp, width = Dp.Unspecified)
                                 .border(
                                     1.dp,

@@ -24,6 +24,7 @@ import androidx.annotation.RequiresPermission
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -357,13 +358,14 @@ class viewwallpapper : ComponentActivity() {
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(
-                                    64, 224, 208
+                                    0, 0, 0
                                 )
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(55.dp)
-                                .padding(start = 10.dp, end = 10.dp)
+                                .padding(horizontal = 20.dp)
+                                .border(1.dp, color = Color(255, 215, 0), shape = RoundedCornerShape(120.dp))
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -598,45 +600,50 @@ class viewwallpapper : ComponentActivity() {
 
     @RequiresPermission(Manifest.permission.SET_WALLPAPER)
     private fun setMyWallpaper(bitmap: Bitmap, type: wallpaperType) {
-        val wm = WallpaperManager.getInstance(this@viewwallpapper)
+
+        val wm = WallpaperManager.getInstance(this)
+
         val displayMetrics = resources.displayMetrics
         val screenWidth = displayMetrics.widthPixels
         val screenHeight = displayMetrics.heightPixels
 
-        // Calculate scale while keeping aspect ratio
-        val bitmapRatio = bitmap.width.toFloat() / bitmap.height
-        val screenRatio = screenWidth.toFloat() / screenHeight
+        // Scale bitmap exactly to screen size
+        val finalBitmap = Bitmap.createScaledBitmap(
+            bitmap,
+            screenWidth,
+            screenHeight,
+            true
+        )
 
-        val scaledBitmap: Bitmap = if (bitmapRatio > screenRatio) {
-            val height = screenHeight
-            val width = (height * bitmapRatio).toInt()
-            Bitmap.createScaledBitmap(bitmap, width, height, true)
-        } else {
-            val width = screenWidth
-            val height = (width / bitmapRatio).toInt()
-            Bitmap.createScaledBitmap(bitmap, width, height, true)
-        }
+        try {
+            when (type) {
+                wallpaperType.HOME -> {
+                    wm.setBitmap(
+                        finalBitmap,
+                        null,
+                        true,
+                        WallpaperManager.FLAG_SYSTEM
+                    )
+                }
 
-        // Create a bitmap with screen size and draw the scaled bitmap centered
-        val finalBitmap = Bitmap.createBitmap(screenWidth, screenHeight, Bitmap.Config.ARGB_8888)
-        val canvas = android.graphics.Canvas(finalBitmap)
-        val left = (screenWidth - scaledBitmap.width) / 2f
-        val top = (screenHeight - scaledBitmap.height) / 2f
-        canvas.drawBitmap(scaledBitmap, left, top, null)
+                wallpaperType.LOCK -> {
+                    wm.setBitmap(
+                        finalBitmap,
+                        null,
+                        true,
+                        WallpaperManager.FLAG_LOCK
+                    )
+                }
 
-        // Set wallpaper
-        when (type) {
-            wallpaperType.HOME -> wm.setBitmap(
-                finalBitmap, null, true, WallpaperManager.FLAG_SYSTEM
-            )
-
-            wallpaperType.LOCK -> wm.setBitmap(
-                finalBitmap, null, true, WallpaperManager.FLAG_LOCK
-            )
-
-            wallpaperType.BOTH -> wm.setBitmap(finalBitmap)
+                wallpaperType.BOTH -> {
+                    wm.setBitmap(finalBitmap)
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
+
 
     suspend fun loadBitmapFromUrl(context: Context, url: String): Bitmap? {
         val loader = ImageLoader(context)

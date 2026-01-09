@@ -1,20 +1,13 @@
 package com.example.livewallpapaer
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Matrix
-import android.graphics.PixelFormat
-import android.graphics.PorterDuff
 import android.os.Handler
 import android.os.Looper
 import android.service.wallpaper.WallpaperService
-import android.util.Log
 import android.view.SurfaceHolder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -28,7 +21,6 @@ class GifWallpaperService : WallpaperService() {
     override fun onCreateEngine(): Engine {
         return GifEngine()
     }
-
     inner class GifEngine : Engine() {
         private var gifDrawable: GifDrawable? = null
         private val coroutineScope = CoroutineScope(Dispatchers.Main + Job())
@@ -74,7 +66,7 @@ class GifWallpaperService : WallpaperService() {
                             withContext(Dispatchers.Main) {
                                 gifDrawable = GifDrawable(tempFile.absolutePath)
                                 if (isVisible) {
-                                    handler.post(drawRunnable)
+                                    handler.post(drawRunnable)  
                                 }
                             }
                         }

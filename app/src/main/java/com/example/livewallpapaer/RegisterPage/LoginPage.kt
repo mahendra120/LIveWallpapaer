@@ -94,7 +94,7 @@ class LoginPage : ComponentActivity() {
     var isloadingandcolor by mutableStateOf(false)
     var email by mutableStateOf("")
     var password by mutableStateOf("")
-    var lodinganimation by mutableStateOf(false)
+        var lodinganimation by mutableStateOf(false)
     var TAG = "===="
 
     private lateinit var auth: FirebaseAuth
@@ -155,7 +155,7 @@ class LoginPage : ComponentActivity() {
 
     private fun navigateToMain() {
         val intent = Intent(this@LoginPage, MainActivity::class.java)
-        startActivity(intent)
+            startActivity(intent)
         finish()
     }
 
@@ -173,16 +173,13 @@ class LoginPage : ComponentActivity() {
     @Composable
     @Preview(showBackground = true)
     fun LoginScrenn() {
-
         val hasInternet = remember { mutableStateOf(isInternetAvailable(this)) }
-
         LaunchedEffect(Unit) {
             while (true) {
                 hasInternet.value = isInternetAvailable(this@LoginPage)
                 delay(1000)
             }
         }
-
         Log.d("90909090", "LoginScrenn: Internet connected")
         Image(
             painter = painterResource(R.drawable.signupscreenpage),
@@ -358,7 +355,7 @@ class LoginPage : ComponentActivity() {
                     .fillMaxSize()
                     .background(Color.Black),
                 contentAlignment = Alignment.Center
-            ) {
+             ) {
                 Column(
                     modifier = Modifier,
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -400,16 +397,13 @@ class LoginPage : ComponentActivity() {
             Toast.makeText(context, "Fill all fields", Toast.LENGTH_SHORT).show()
         }
     }
-
     private fun setupGoogleSignInClient() {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
             .build()
-
         googleSignInClient = GoogleSignIn.getClient(this, gso)
     }
-
     // Unified entry point for your Google button
     fun googleLogin() {
         // choose new API only on Android 14+
@@ -424,16 +418,13 @@ class LoginPage : ComponentActivity() {
     private fun googleLoginNewAPIWithFallback() {
         try {
             val credentialManager = CredentialManager.create(this)
-
             val googleIdOption = GetGoogleIdOption.Builder()
                 .setServerClientId(getString(R.string.default_web_client_id))
                 .setFilterByAuthorizedAccounts(false)
                 .build()
-
             val request = GetCredentialRequest.Builder()
                 .addCredentialOption(googleIdOption)
                 .build()
-
             lifecycleScope.launch {
                 try {
                     val result = credentialManager.getCredential(
@@ -446,7 +437,6 @@ class LoginPage : ComponentActivity() {
                         TAG,
                         "GetCredentialException: ${e.localizedMessage}\n${e.stackTraceToString()}"
                     )
-                    // Automatic fallback to old API if new API fails
                     runOnUiThread {
                         Toast.makeText(
                             this@LoginPage,
@@ -566,9 +556,7 @@ class LoginPage : ComponentActivity() {
 @Composable
 fun loadinanimation(mp4Uri: String) {
     val context = LocalContext.current
-
     val rawResourceUri = "android.resource://${context.packageName}/${R.raw.sharingan}"
-
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
             val mediaItem = MediaItem.fromUri(rawResourceUri)
@@ -578,13 +566,11 @@ fun loadinanimation(mp4Uri: String) {
             prepare()
         }
     }
-
     DisposableEffect(Unit) {
         onDispose {
             exoPlayer.release()
         }
     }
-
     AndroidView(
         factory = {
             PlayerView(context).apply {

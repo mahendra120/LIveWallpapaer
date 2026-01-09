@@ -45,11 +45,12 @@ import kotlinx.coroutines.launch
 var myColor = Color.Yellow
 
 val rainbowColors = listOf(
-    Color(0xFF0F2027), // Deep Navy
-    Color(0xFF203A43), // Steel Blue
-    Color(0xFF2C5364), // Teal Gray
-    Color(0xFF4B79A1), // Cool Blue
-    Color(0xFF283E51)  // Space Black
+    Color(255, 215, 0), // Yellow
+    Color(255, 0, 0), // Orange
+    Color(255, 255, 0), // Reddish Orange
+    Color(0, 128, 0),
+    Color(254,134,243),
+
 )
 
 @Composable
@@ -79,7 +80,7 @@ fun HomePage(modifier: Modifier = Modifier, context: Context, home: List<String>
                             },
                             modifier = modifier
                                 .fillMaxWidth()
-                                .padding(4.dp)
+                                .padding(10.dp)
                                 .size(height = 335.dp, width = Dp.Unspecified)
                                 .border(
                                     1.dp,
@@ -135,7 +136,7 @@ fun HomePage(modifier: Modifier = Modifier, context: Context, home: List<String>
                             },
                             modifier = modifier
                                 .fillMaxWidth()
-                                .padding(4.dp)
+                                .padding(10.dp)
                                 .size(height = 335.dp, width = Dp.Unspecified)
                                 .border(
                                     1.dp,

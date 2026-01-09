@@ -94,9 +94,7 @@ class PremiumActivity : ComponentActivity(), PaymentResultListener {
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
-
                 Spacer(modifier = Modifier.height(17.dp))
-
                 PremiumCard(
                     onClick = { expanded1monthcard = !expanded1monthcard },
                     colorDark = true,
@@ -114,7 +112,6 @@ class PremiumActivity : ComponentActivity(), PaymentResultListener {
                     discountedPrice = "599",
                     expanded = expanded6monthcard,
                 )
-
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(
                     onClick = {
